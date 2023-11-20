@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Orbits of 39 Milky Way satellites from GAIA DR2 - Fritz et al. 2018, A&ampA, 619, 103</title>
+		<meta charset=utf-8>
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body { overflow:hidden; margin: 0; }
+			canvas { width: 100%; height: 100%; overflow:hidden }
+		</style>
+	</head>
+	<body>
+		<script src="threejs/three.min.js"></script>
+		<script src="threejs/OrbitControls.js"></script>
+		<script src="threejs/CCapture.all.min.js"></script>
+		<script>
+
+var camera, scene, renderer, controls;
+var plane;
+var galaxies = [];
+var solarsys = [];
+var scaleVector = new THREE.Vector3();
+var info_path;
+var npoints_per_orbit;
+var count = 0;
+var skipcount = 0;
+var dir = 0;
+var nframes = 0;
+const capturer = new CCapture( { format: 'png' } );
+
+var timeText = document.createElement('div');
+timeText.style.position = 'absolute';
+//timeText.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+timeText.style.fontFamily = "Arial, Helvetica, sans-serif";
+timeText.style.fontSize = 30 + 'px';
+timeText.style.width = 100;
+timeText.style.height = 100;
+timeText.style.color = "white";
+//timeText.style.backgroundColor = "black";
+timeText.style.top  = 15 + '%'; 
+timeText.style.left = 2 + '%'; 
+document.body.appendChild(timeText);
+
+var loadingText = document.createElement('div');
+loadingText.style.position = 'absolute';
+//loadingText.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+loadingText.style.fontFamily = "Arial, Helvetica, sans-serif";
+loadingText.style.fontSize = 30 + 'px';
+loadingText.style.width = 100;
+loadingText.style.height = 100;
+loadingText.style.color = "white";
+//loadingText.style.backgroundColor = "black";
+loadingText.style.top  = 15 + '%'; //'px'
+loadingText.style.left = 2 + '%'; //'px'
+loadingText.innerHTML = "Loading...";
+document.body.appendChild(loadingText);
+
+var creditText = document.createElement('div');
+creditText.style.position = 'absolute';
+//creditText.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+creditText.style.fontFamily = "Courier, Arial, Helvetica, sans-serif";
+creditText.style.fontSize = 15 + 'px';
+creditText.style.width = 100;
+creditText.style.height = 100;
+creditText.style.color = "white";
+//creditText.style.backgroundColor = "black";
+creditText.style.top  = 88 + '%'; //'px'
+creditText.style.left = 2 + '%'; //'px'
+creditText.innerHTML = "Credit: A. Villalobos, G. Battaglia, T. Fritz (animation); NASA (Milky Way rendition)";
+document.body.appendChild(creditText);
+
+var titleText = document.createElement('div');
+titleText.style.position = 'absolute';
+//titleText.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+titleText.style.fontFamily = "Courier, Arial, Helvetica, sans-serif";
+titleText.style.fontSize = 15 + 'px';
+titleText.style.width = 100;
+titleText.style.height = 100;
+titleText.style.color = "white";
+//titleText.style.backgroundColor = "black";
+titleText.style.top  = 2 + '%'; //'px'
+titleText.style.left = 2 + '%'; //'px'
+titleText.innerHTML = "Orbits of 39 Milky Way satellites from GAIA DR2 " + 
+	"based on <a href=\"http://adsabs.harvard.edu/abs/2018A%26A...619A.103F\" style=\"color:white\">Fritz et al. 2018, A&ampA, 619, 103</a> " + 
+	"(drag, scroll, pinch to change view)";
+document.body.appendChild(titleText);
+
+init();
+animate();
+
+function init() {
+
+  scene = new THREE.Scene();
+  //camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+  camera = new THREE.PerspectiveCamera(45, 1920 / 1080, 1, 10000);
+  //camera = new THREE.PerspectiveCamera(45, 1280 / 720, 1, 10000);
+  //camera = new THREE.PerspectiveCamera(45, 854 / 480, 1, 10000);
+  camera.position.set(0, 30, 10);
+  camera.up.set(0,0,1);
+  camera.lookAt(scene.position);
+
+  //renderer = new THREE.WebGLRenderer({ antialias: true }); // antialias can cause problems in Chrome and/or mobile.
+  renderer = new THREE.WebGLRenderer();
+  renderer.setPixelRatio( window.devicePixelRatio );
+  //renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(1920, 1080);
+  //renderer.setSize(1280, 720);
+  //renderer.setSize(854, 480);
+  document.body.appendChild(renderer.domElement);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enablePan = false;
+  controls.update();
+
+  var createGalaxy = function(name) {
+
+    var geom = new THREE.Geometry();
+    geom.vertices.push(new THREE.Vector3(0,0,0));
+    var mat = new THREE.PointsMaterial( {
+        color: 0xFFFFFF,
+        size: 20,
+        map: THREE.ImageUtils.loadTexture("images/particle.png"
+        ),
+        blending: THREE.AdditiveBlending,
+        depthTest: false,
+        transparent: true 
+        } );
+    var galaxy = new THREE.Points( geom, mat );
+    galaxy.visible = false;    
+
+    var canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    var ctx = canvas.getContext("2d");
+    ctx.font = "44pt Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(name, 128, 44);
+    //console.log(ctx);
+    var tex = new THREE.Texture(canvas);
+    tex.needsUpdate = true;
+    var spriteMat = new THREE.SpriteMaterial({
+      map: tex
+    });
+    var sprite = new THREE.Sprite(spriteMat);
+
+    galaxy.add(sprite);
+    galaxies.push(galaxy);
+    scene.add(galaxy);
+
+  };
+
+  var createSun = function(name, radius) {
+    var geom = new THREE.SphereGeometry(radius, 32, 16);
+    var mat = new THREE.MeshBasicMaterial({
+      color: "gold",
+      map: THREE.ImageUtils.loadTexture("images/sunsurface.jpg"),
+      //wireframe: true
+    });
+    var sun = new THREE.Mesh(geom, mat);
+    sun.visible = false;
+    sun.position.set(8,0,0);
+
+    var canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    var ctx = canvas.getContext("2d");
+    ctx.font = "44pt Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(name, 128, 44);
+    //console.log(ctx);
+    var tex = new THREE.Texture(canvas);
+    tex.needsUpdate = true;
+    var spriteMat = new THREE.SpriteMaterial({
+      map: tex
+    });
+    var sprite = new THREE.Sprite(spriteMat);
+
+    sun.add(sprite);
+    solarsys.push(sun);
+    scene.add(sun);
+  };
+
+  createGalaxy("AquII");
+  createGalaxy("BooI");
+  createGalaxy("BooII");
+  createGalaxy("CVenI");
+  createGalaxy("CVenII");
+  createGalaxy("CarI");
+  createGalaxy("CarII");
+  createGalaxy("CarIII");
+  createGalaxy("CBerI");
+  createGalaxy("CraI");
+  createGalaxy("CraII");
+  createGalaxy("DraI");
+  createGalaxy("DraII");
+  createGalaxy("EriII");
+  createGalaxy("FnxI");
+  createGalaxy("GruI");
+  createGalaxy("HerI");
+  createGalaxy("HorI");
+  createGalaxy("HyaII");
+  createGalaxy("LeoI");
+  createGalaxy("LeoII");
+  createGalaxy("LeoIV");
+  createGalaxy("LeoV");
+  createGalaxy("PhxI");
+  createGalaxy("PisII");
+  createGalaxy("RetII");
+  createGalaxy("SgrI");
+  createGalaxy("SclI");
+  createGalaxy("Seg1");
+  createGalaxy("Seg2");
+  createGalaxy("SxtI");
+  createGalaxy("TriII");
+  createGalaxy("TucII");
+  createGalaxy("TucIII");
+  createGalaxy("UMaI");
+  createGalaxy("UMaII");
+  createGalaxy("UMiI");
+  createGalaxy("Wil1");
+  createGalaxy("HyiI");
+  createSun("Sun", 1);
+
+var light = new THREE.DirectionalLight(0xffffff, 2);
+light.position.setScalar(10);
+scene.add(light);
+
+var light2 = new THREE.DirectionalLight(0xffffff, 2);
+light2.position.setScalar(-10);
+scene.add(light2);
+
+var planeGeometry = new THREE.CircleGeometry(15,32);
+//var texture = new THREE.TextureLoader().load( 'images/mw.jpg' ); // TextureLoader may have problems in IPhone/Chrome
+//var planeMaterial = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide} );
+var planeMaterial = new THREE.MeshLambertMaterial({
+	map: THREE.ImageUtils.loadTexture("images/mw.jpg"),
+	side: THREE.DoubleSide
+	});
+plane = new THREE.Mesh(planeGeometry, planeMaterial);
+plane.receiveShadow = true;
+plane.position.set(0,0,0);
+plane.rotateZ(1.57);
+plane.visible = false;
+scene.add(plane);
+
+var loader = new THREE.FileLoader();
+loader.load(
+	// resource URL
+	'readFile.php', 
+
+	// onLoad callback
+	function ( data ) {
+		// output the text to the console
+		//console.log( data )
+		info_path = JSON.parse(data);
+		console.log('info_path.length: ' + info_path.length);
+		npoints_per_orbit = info_path.length / info_path[info_path.length-1][0];
+		console.log('npoints_per_orbit: ' + npoints_per_orbit);
+		var array_points = [];
+		var current_id = 1.0;
+		for(var i=0;i<info_path.length;i++){
+			if(info_path[i][0] == current_id){
+				array_points.push( new THREE.Vector3(info_path[i][2], info_path[i][3], info_path[i][4]) );
+			} else {
+				var pathGeometry = new THREE.Geometry();
+				pathGeometry.setFromPoints(array_points);
+				pathMaterial = new THREE.LineBasicMaterial({color: Math.random() * 0xFFFFFF});
+				var path = new THREE.Line( pathGeometry, pathMaterial );
+				scene.add(path);
+
+				array_points = [];
+				current_id = info_path[i][0];
+				array_points.push( new THREE.Vector3(info_path[i][2], info_path[i][3], info_path[i][4]) );
+			}
+		}
+		var pathGeometry = new THREE.Geometry();
+		pathGeometry.setFromPoints(array_points);
+		pathMaterial = new THREE.LineBasicMaterial({color: Math.random() * 0xFFFFFF}); 
+		var path = new THREE.Line( pathGeometry, pathMaterial );
+		scene.add(path);
+
+		if(capturer){
+			capturer.start();
+		}
+	},
+
+	// onProgress callback
+	function ( xhr ) {
+                //let percent = xhr.loaded / xhr.total * 100;
+		//console.log( percent + '% loaded' );
+                //loadingText.innerHTML   = 'Loading... ' + percent.toFixed(0) + ' %';
+		//loadingText.innerHTML   = 'Loading...';
+	},
+
+	// onError callback
+	function ( err ) {
+		console.error( 'An error happened' );
+	}
+);
+
+window.addEventListener( 'resize', onWindowResize, false );
+
+}
+
+function onWindowResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+}
+
+function animate() {
+
+  requestAnimationFrame(animate);
+
+  if(info_path != null){
+
+	loadingText.innerHTML = ' ';
+
+    	if(count >= npoints_per_orbit){
+		count = 0;
+    	}
+
+  var time = (Number(info_path[count][1]))/1000.0;
+  timeText.innerHTML   = 'Time = ' + time.toFixed(2) + ' Gyr';
+
+  plane.visible = true;
+
+  solarsys.forEach(function(sun) {
+
+    if(time == 0.0 && skipcount < 400){
+	sun.visible = true;
+    } else {
+	sun.visible = false;
+    }
+
+    var scaleFactor = 8;
+    var sprite = sun.children[0];
+    var scale = scaleVector.subVectors(sun.position, camera.position).length() / scaleFactor;
+    sprite.scale.set(scale, scale, 1);
+  });
+
+  var galaxy_id = 0;
+  galaxies.forEach(function(galaxy) {
+    
+    galaxy.visible = true;
+    galaxy.position.x = info_path[(galaxy_id * npoints_per_orbit) + count][2];
+    galaxy.position.y = info_path[(galaxy_id * npoints_per_orbit) + count][3];
+    galaxy.position.z = info_path[(galaxy_id * npoints_per_orbit) + count][4];
+
+    var scaleFactor = 8;
+    var sprite = galaxy.children[0];
+    var scale = scaleVector.subVectors(galaxy.position, camera.position).length() / scaleFactor;
+    sprite.scale.set(scale, scale, 1);
+    	
+    galaxy_id++;
+
+  });
+
+    if( (time == 0.0 || time == -1.0) && skipcount < 400){
+    	var x = camera.position.x;
+    	var y = camera.position.y;
+    	var z = camera.position.z;
+
+    	if(dir == 0){
+    		camera.position.x = (x * Math.cos(0.001) - y * Math.sin(0.001)) * 1.0015;
+    		camera.position.y = (x * Math.sin(0.001) + y * Math.cos(0.001)) * 1.0015;
+    		camera.position.z = z * 1.0015;
+    		if( Math.sqrt((camera.position.x)**2+(camera.position.y)**2+(camera.position.z)**2) > 300 ){
+			dir = 1;
+    		}
+    	} else {
+        	camera.position.x = (x * Math.cos(0.001) - y * Math.sin(0.001)) / 1.0015;
+        	camera.position.y = (x * Math.sin(0.001) + y * Math.cos(0.001)) / 1.0015;
+        	camera.position.z = z / 1.0015;
+        	if( Math.sqrt((camera.position.x)**2+(camera.position.y)**2+(camera.position.z)**2) < 80 ){
+                	dir = 0;
+        	}
+    	}
+    }
+    camera.lookAt(scene.position);
+    controls.update();
+
+    if( (time == 0.0 || time == -1.0) && skipcount < 400){
+	skipcount++;
+    } else {
+	skipcount = 0;
+	count = count + 1; //4
+    }
+
+    //}
+
+    if(capturer && nframes == 7403){ //7403 
+    	capturer.stop();
+    	capturer.save();
+    }
+    //console.log( time + ' ' + nframes);
+    nframes = nframes + 1;
+
+  }
+
+  render();
+}
+
+function render() {
+  renderer.render(scene, camera);
+  if(capturer){
+  	capturer.capture( renderer.domElement );
+  }
+}
+
+
+
+			
+		</script>
+	</body>
+</html>

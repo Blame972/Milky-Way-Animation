@@ -1,0 +1,2457 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Orbits of 51 Milky Way satellites from GAIA eDR3 - Battaglia et al. 2022, A&A, 657, 54</title>
+		<meta charset=utf-8>
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<link rel="stylesheet" href="./main.css">
+		<style>			
+			body { overflow:hidden; margin: 0; }
+			canvas { width: 100%; height: 100%; overflow:hidden }
+			
+			nav { overflow: auto }
+			
+			nav::-webkit-scrollbar {
+				width: 10px;
+				height: 10px;
+			}
+
+			nav::-webkit-scrollbar-track {
+				background-color: #f1f1f1;
+			}
+
+			nav::-webkit-scrollbar-thumb {
+				background-color: #888;
+			}
+			
+			input[type=checkbox] {
+				background-color: black;
+			}
+		</style>
+	</head>
+	
+	<body>
+	
+	<script type=»text/javascript»>
+	document.oncontextmenu = function(){return false;}
+	</script>
+	
+	<!-- Scenes var -->
+	<script>
+	var scene, scene1, scene2;
+	</script>
+	
+	<!-- Expansive menu -->
+	<div class="page-container">		
+		<nav class="nav">
+			<a href="#" class="nav__link" onclick='navigation()'>
+				<script>
+					// Navigation for the menu
+					{
+						const collapsedClass = "nav--collapsed";
+						const lsKey = "navCollapsed";
+						const nav = document.querySelector(".nav");
+						const navBorder = nav.querySelector(".nav__border");
+						if (localStorage.getItem(lsKey) === "true") {
+							nav.classList.add(collapsedClass);
+						}
+						function navigation(){
+							nav.classList.toggle(collapsedClass);
+							localStorage.setItem(lsKey, nav.classList.contains(collapsedClass));
+						};
+					}
+				</script>
+				<div class="nav__icon-container">
+					<i class="material-icons md-light">menu_open</i>
+				</div>
+				<span class="nav__label">Drop-down Menu</span>
+			</a>
+			<a href="#" class="nav__link" id="withlmc" onclick="foo()">
+				<script>
+					function foo(){
+						scene = scene1; // change to scene1
+						var withlmc = document.getElementById("withlmc");
+						withlmc.style.backgroundColor = "darkgrey";
+						var withoutlmc = document.getElementById("withoutlmc");
+						withoutlmc.style.backgroundColor = "";
+					};
+				</script>
+				<div class="nav__icon-container">
+					<i class="material-icons">dashboard</i>
+				</div>
+				<span class="nav__label">With LMC</span>
+			</a>
+			<a href="#" class="nav__link" id="withoutlmc" onclick="foo2()">
+				<script>
+					function foo2(){
+						scene = scene2; // change to scene2
+						var withlmc = document.getElementById("withlmc");
+						withlmc.style.backgroundColor = "";
+						var withoutlmc = document.getElementById("withoutlmc");
+						withoutlmc.style.backgroundColor = "darkgrey";
+					};
+				</script>
+				<div class="nav__icon-container">
+					<i class="material-icons">dashboard</i>
+				</div>
+				<span class="nav__label">Without LMC</span>
+			</a>
+			<a href="#" class="nav__link" onclick='reload()'>
+				<script>
+					function reload(){
+						location.reload();
+					};
+				</script>
+				
+				<div class="nav__icon-container">
+					<i class="material-icons md-light">refresh</i>
+				</div>
+				<span class="nav__label">Reload</span>
+			</a>
+			<a href="#" class="nav__link" id="backButton-container">
+				<div class="nav__icon-container">
+					<i class="material-icons">skip_previous</i>
+				</div>
+				<div class="nav__label" id="backButton">Skip Previous</div>
+				<div class="nav__icon-container2">
+				</div>
+			</a>
+			<a href="#" class="nav__link" id="pauseButton-container">
+				<div class="nav__icon-container" id="pauseIconContainer">
+					<i class="material-icons">pause</i>
+				</div>
+				<div class="nav__label" id="pauseButton">Pause</div>
+				<div class="nav__icon-container2">
+				</div>
+			</a>
+			<a href="#" class="nav__link" id="forwardButton-container">
+				<div class="nav__icon-container">
+					<i class="material-icons">fast_forward</i>
+				</div>
+				<div class="nav__label" id="forwardButton">Fast Forward</div>
+				<div class="nav__icon-container2">
+				</div>
+			</a>
+			<a href="#" class="nav__link" onclick='alert("Mark the satellites to see them!");'>
+				<div class="nav__icon-container">
+					<i class="material-icons">layers</i>
+				</div>
+				<span class="nav__label">Layers</span>
+				<div class="nav__icon-container2">
+				</div>
+			</a>
+
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="select" checked="checked" onclick='toggle(this)'/>
+					<script type="text/javascript">
+						function toggle(source) {
+							var aInputs = document.getElementsByTagName('input');
+							for (var i=0;i<aInputs.length;i++) {
+								if (aInputs[i] != source && aInputs[i].className == source.className && aInputs[i].id !== "show-galaxy-names") {
+									aInputs[i].checked = source.checked;
+								}
+							}
+						}
+					</script> 
+				</div>
+				<span class="nav__label">Select All</span>
+			</a>
+			<a href="#" class="nav__link">
+				<div class="nav__icon-container">
+					<input type="checkbox" id="show-galaxy-names" checked="true" />
+				</div>
+				<span class="nav__label">Show names</span>
+			</a>
+			<a href="#" class="nav__link">
+				<div class="nav__icon-container">
+					<input type="checkbox" id="show-paths" checked="true" />
+				</div>
+				<span class="nav__label">Show orbits</span>
+			</a>
+			<a href="#" class="nav__link">
+				<div class="nav__icon-container">
+					<input type="checkbox" id="AntII" checked="true" />
+				</div>
+				<span class="nav__label">Antlia II</span>
+			</a>
+
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="AquII" checked="checked" />
+				</div>
+				<span class="nav__label">Aquarius II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="BooI" checked="checked" />
+				</div>
+				<span class="nav__label">Bootes I</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="BooII" checked="checked" />
+				</div>
+				<span class="nav__label">Bootes II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="BooIII" checked="checked" />
+				</div>
+				<span class="nav__label">Bootes III</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="CVenI" checked="checked" />
+				</div>
+				<span class="nav__label">Canes Venatici I</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="CVenII" checked="checked" />
+				</div>
+				<span class="nav__label">Canes Venatici II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Car" checked="checked" />
+				</div>
+				<span class="nav__label">Carina</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="CarII" checked="checked" />
+				</div>
+				<span class="nav__label">Carina II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="CarIII" checked="checked" />
+				</div>
+				<span class="nav__label">Carina III</span>
+			</a>
+
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="ColI" checked="checked" />
+				</div>
+				<span class="nav__label">Columba I</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="CBer" checked="checked" />
+				</div>
+				<span class="nav__label">Coma Berenices</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="CraI" checked="checked" />
+				</div>
+				<span class="nav__label">Crater I</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="CraII" checked="checked" />
+				</div>
+				<span class="nav__label">Crater II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Dra" checked="checked" />
+				</div>
+				<span class="nav__label">Draco</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="DraII" checked="checked" />
+				</div>
+				<span class="nav__label">Draco II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="EriII" checked="checked" />
+				</div>
+				<span class="nav__label">Eridanus II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Fnx" checked="checked" />
+				</div>
+				<span class="nav__label">Fornax</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="GruI" checked="checked" />
+				</div>
+				<span class="nav__label">Grus I</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="GruII" checked="checked" />
+				</div>
+				<span class="nav__label">Grus II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Her" checked="checked" />
+				</div>
+				<span class="nav__label">Hercules</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="HorI" checked="checked" />
+				</div>
+				<span class="nav__label">Horologium I</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="HorII" checked="checked" />
+				</div>
+				<span class="nav__label">Horologium II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="HydraII" checked="checked" />
+				</div>
+				<span class="nav__label">Hydra II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="HydrusI" checked="checked" />
+				</div>
+				<span class="nav__label">Hydrus I</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="LeoI" checked="checked" />
+				</div>
+				<span class="nav__label">Leo I</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="LeoII" checked="checked" />
+				</div>
+				<span class="nav__label">Leo II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="LeoIV" checked="checked" />
+				</div>
+				<span class="nav__label">Leo IV</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="LeoV" checked="checked" />
+				</div>
+				<span class="nav__label">Leo V</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="LeoT" checked="checked" />
+				</div>
+				<span class="nav__label">Leo T</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="NGC6822" checked="checked" />
+				</div>
+				<span class="nav__label">NGC6822</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="PegIII" checked="checked" />
+				</div>
+				<span class="nav__label">Pegasus III</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Phx" checked="checked" />
+				</div>
+				<span class="nav__label">Phoenix</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="PhxII" checked="checked" />
+				</div>
+				<span class="nav__label">Phoenix II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="PiscesII" checked="checked" />
+				</div>
+				<span class="nav__label">Pisces II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="RetII" checked="checked" />
+				</div>
+				<span class="nav__label">Reticulum II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="RetIII" checked="checked" />
+				</div>
+				<span class="nav__label">Reticulum III</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="SagII" checked="checked" />
+				</div>
+				<span class="nav__label">Sagittarius II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Scl" checked="checked" />
+				</div>
+				<span class="nav__label">Sculptor</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Seg1" checked="checked" />
+				</div>
+				<span class="nav__label">Segue 1</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Seg2" checked="checked" />
+				</div>
+				<span class="nav__label">Segue 2</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Sext" checked="checked" />
+				</div>
+				<span class="nav__label">Sextans</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="TriII" checked="checked" />
+				</div>
+				<span class="nav__label">Triangulum II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="TucII" checked="checked" />
+				</div>
+				<span class="nav__label">Tucana II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="TucIII" checked="checked" />
+				</div>
+				<span class="nav__label">Tucana III</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="TucIV" checked="checked" />
+				</div>
+				<span class="nav__label">Tucana IV</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="TucV" checked="checked" />
+				</div>
+				<span class="nav__label">Tucana V</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="UMaI" checked="checked" />
+				</div>
+				<span class="nav__label">Ursa Major I</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="UMaII" checked="checked" />
+				</div>
+				<span class="nav__label">Ursa Major II</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="UMi" checked="checked" />
+				</div>
+				<span class="nav__label">Ursa Minor</span>
+			</a>
+			
+			<a href="#" class="nav__link"> 
+				<div class="nav__icon-container">
+					<input type="checkbox" id="Wil1" checked="checked" />
+				</div>
+				<span class="nav__label">Willman 1</span>
+			</a>
+			</nav>
+			<main class="main">
+				<div id="main-viewport" class="viewport" style="position: absolute; overflow: hidden; width: 100%; height: 100%;">	 <!-- Division to display the scene -->
+				</div>
+			</main>
+	</div>
+				
+	<!-- Load latest Threejs library modules from the web. No need to download them by hand (code is based on march 23' version) -->
+	<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+	<script type="importmap">
+	{
+		"imports": {
+			"three": "https://unpkg.com/three@0.149.0/build/three.module.js",
+			"three/addons/": "https://unpkg.com/three@0.149.0/examples/jsm/"
+		}
+	}
+	</script>
+
+	<!-- Load library to generate screen captures to make videos (not needed for animation) -->
+	<script src="threejs/CCapture.all.min.js"></script>
+
+    <!-- Main script containing the animation -->	
+	<script type="module">
+	
+		// Import functions from Threejs modules
+		import * as THREE from 'three';
+		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+		
+		// Declare some variables 
+		var camera, renderer, controls;
+		var plane1, plane2;
+		var galaxies = [];
+		var paths = [];
+		var galaxies2 = [];
+		var paths2 = [];
+		var solarsys = [];
+		var solarsys2 = [];
+		var scaleVector = new THREE.Vector3();
+		var info_path, info_path2;
+		var npoints_per_orbit, npoints_per_orbit2;
+		var count = 0;
+		var skipcount = 0;
+		var dir = 0;
+		var nframes = 0;
+		
+		var pathGeometries = [];
+		var pathGeometries2 = [];
+		
+		// Code for the Pause/Resume Button and control time
+		var isPaused = false;
+		var isForward = false;
+		var isBack = false;
+		var pauseButton_container = document.getElementById("pauseButton-container");
+		var pauseButton = document.getElementById("pauseButton");
+		var forwardButton_container = document.getElementById("forwardButton-container");
+		var forwardButton = document.getElementById("forwardButton");
+		var backButton_container = document.getElementById("backButton-container");
+		var backButton = document.getElementById("backButton");
+		pauseButton_container.addEventListener("click", function() {
+			if (isPaused) {
+				// Si la escena está pausada, reanuda la animación
+				isPaused = false;
+				pauseButton.innerHTML = "Pause";
+				document.getElementById("pauseIconContainer").innerHTML = '<i class="material-icons">pause</i>';
+			} else {
+				// Si la escena está en movimiento, pausa la animación
+				isPaused = true;
+				pauseButton.innerHTML = "Resume";
+				document.getElementById("pauseIconContainer").innerHTML = '<i class="material-icons">play_arrow</i>';
+			}
+		});
+		forwardButton_container.addEventListener("mousedown", function() {
+			if (!isPaused) {
+				isForward = true;
+			}
+		});
+		forwardButton_container.addEventListener("mouseup", function() {
+			if (!isPaused) {
+				isForward = false;
+			}
+		});
+		backButton_container.addEventListener("mousedown", function() {
+			if (!isPaused) {
+				isBack = true;
+			}
+		});
+		backButton_container.addEventListener("mouseup", function() {
+			if (!isPaused) {
+				isBack = false;
+			}
+		});
+		
+		const dSphs = ['AquII','BooI','BooII','BooIII','CVenII','CarII','CarIII','ColI','CBer','CraI','DraII','EriII','GruI','GruII','Her','HorI','HorII','HydraII','HydrusI','LeoIV','LeoV','LeoT','PegIII','PhxII','RetII','RetIII','SagII','Seg1','Seg2','TriII','TucII','TucIII','TucIV','UMaI','UMaII','Wil1','PiscesII','TucV'];
+		const UFDs = ['AntII','CVenI','Car','CraII','Dra','Fnx','LeoI','LeoII','Phx','Scl','Sext','UMi','NGC6822'];
+		//const capturer = new CCapture( { format: 'png' } );
+		
+		// Format the html element showing the 'time' text 
+		var timeText = document.createElement('div');
+		timeText.style.position = 'absolute';
+		timeText.style.fontFamily = "Arial, Helvetica, sans-serif";
+		timeText.style.fontSize = 30 + 'px';
+		timeText.style.width = 100;
+		timeText.style.height = 100;
+		timeText.style.color = "white";
+		timeText.style.top  = 17 + '%'; 
+		timeText.style.left = 2 + '%'; 
+		document.getElementById("main-viewport").appendChild(timeText);
+		
+		// Format the html element showing the 'loading' text
+		var loadingText = document.createElement('div');
+		loadingText.style.position = 'absolute';
+		loadingText.style.fontFamily = "Arial, Helvetica, sans-serif";
+		loadingText.style.fontSize = 30 + 'px';
+		loadingText.style.width = 100;
+		loadingText.style.height = 100;
+		loadingText.style.color = "white";
+		loadingText.style.top  = 17 + '%'; //'px'
+		loadingText.style.left = 2 + '%'; //'px'
+		loadingText.innerHTML = "Loading...";
+		document.getElementById("main-viewport").appendChild(loadingText);
+		
+		// Format the html element showing the 'credit' text
+		var instructionsText = document.createElement('div');
+		instructionsText.style.position = 'absolute';
+		instructionsText.style.fontFamily = "Courier, Arial, Helvetica, sans-serif";
+		instructionsText.style.fontSize = 15 + 'px';
+		instructionsText.style.width = 100;
+		instructionsText.style.height = 100;
+		instructionsText.style.color = "white";
+		instructionsText.style.top  = 7.5 + '%'; //'px'
+		instructionsText.style.left = 2 + '%'; //'px'
+		instructionsText.innerHTML = "Instructions: drag, scroll, pinch to change view";
+		document.getElementById("main-viewport").appendChild(instructionsText);
+		
+		var creditText = document.createElement('div');
+		creditText.style.position = 'absolute';
+		creditText.style.fontFamily = "Courier, Arial, Helvetica, sans-serif";
+		creditText.style.fontSize = 13 + 'px';
+		creditText.style.width = 100;
+		creditText.style.height = 100;
+		creditText.style.color = "white";
+		creditText.style.top  = 95 + '%'; //'px'
+		creditText.style.left = 2 + '%'; //'px'
+		creditText.innerHTML = "Animation: A. Alvarez, A. Villalobos, G. Battaglia, G. Thomas; Milky Way rendition: NASA";
+		document.getElementById("main-viewport").appendChild(creditText);
+		
+		// Format the html element showing the 'title1' text
+		var title1Text = document.createElement('div');
+		title1Text.style.position = 'absolute';
+		title1Text.style.fontFamily = "Courier, Arial, Helvetica, sans-serif";
+		title1Text.style.fontSize = 17 + 'px';
+		title1Text.style.width = 100;
+		title1Text.style.height = 100;
+		title1Text.style.color = "white";
+		title1Text.style.top  = 2.5 + '%'; //'px'
+		title1Text.style.left = 2 + '%'; //'px'
+		title1Text.innerHTML = "Interactive animation of the orbits of 51 Milky Way satellites from Gaia eDR3 proper motions";
+		document.getElementById("main-viewport").appendChild(title1Text);
+		
+		// Format the html element showing the 'title2' text
+		var title2Text = document.createElement('div');
+		title2Text.style.position = 'absolute';
+		title2Text.style.fontFamily = "Courier, Arial, Helvetica, sans-serif";
+		title2Text.style.fontSize = 14 + 'px';
+		title2Text.style.width = 100;
+		title2Text.style.height = 100;
+		title2Text.style.color = "white";
+		title2Text.style.top  = 90.5 + '%'; //'px'
+		title2Text.style.left = 2 + '%'; //'px'
+		title2Text.innerHTML = "For more information, see " + 
+		"<a href=\"https://ui.adsabs.harvard.edu/abs/2022A%26A...657A..54B/abstract\" style=\"color:white\">Battaglia et al. 2022, A&A, 657, 54</a> " + 
+		"and webpage <a href=\"http://research.iac.es/proyecto/GaiaDR3LocalGroup/\" style=\"color:white\">Gaia eDR3 Local Group</a> ";
+		document.getElementById("main-viewport").appendChild(title2Text);
+	
+		// Usual Threejs basic structure
+		init();
+		animate();
+	
+		function init() {
+			// Create the scene, camera, renderer and controls for the animation
+			scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+			camera.position.set(0, 30, 10);
+			camera.up.set(0,0,1);
+			// Camera looks at the center of the Milky Way (general scene) when you start the animation.
+			camera.lookAt(scene.position);
+			
+			renderer = new THREE.WebGLRenderer({ antialias: true });
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.getElementById("main-viewport").appendChild(renderer.domElement);
+			
+			controls = new OrbitControls(camera, renderer.domElement);
+			controls.enablePan = false;
+			controls.update();
+			
+			scene1 = new THREE.Scene();
+			
+			// Function to create a single satellite galaxy for scene1.
+			// The satellite galaxy has:
+			// - an initial position (to be updated later)
+			// - a text with its respective name.
+			//		Note that the text is constructed as a sprite, meaning that
+			//		always faces to camera, no matter the camera position
+			// - a texture (for simplicity the same for all galaxies)
+			var createGalaxy = function(name) {
+				// Create the geometry
+				var geom = new THREE.BufferGeometry();
+				var points = [];
+				points.push( new THREE.Vector3(0,0,0) );
+				geom.setFromPoints(points);
+				geom.computeVertexNormals();
+				// Create the texture from an image file, using several settings
+				// to make them semi-transparent, pass behind the Milky Way when orbiting, etc 
+				if (dSphs.includes(name)) {
+					var texture = new THREE.TextureLoader().load('images/dSphs.png');
+					var mat = new THREE.PointsMaterial( {
+						color: 0xFFFFFF,
+						size: 20,
+						map: texture,
+						blending: THREE.AdditiveBlending,
+						depthTest: false,
+						transparent: true 
+					} );
+				} else if (UFDs.includes(name)) {
+					var texture = new THREE.TextureLoader().load('images/UFDs.png');
+					var mat = new THREE.PointsMaterial( {
+						color: 0xFFFFFF,
+						size: 20,
+						map: texture,
+						blending: THREE.AdditiveBlending,
+						depthTest: false,
+						transparent: true 
+					} );
+				} else {
+					var texture = new THREE.TextureLoader().load('images/LMC.png');
+					var mat = new THREE.PointsMaterial( {
+						color: 0xFFFFFF,
+						size: 150,
+						map: texture,
+						blending: THREE.AdditiveBlending,
+						depthTest: false,
+						transparent: true 
+					} );
+				}
+				// Create a basic galaxy (visible for now)
+				var galaxy = new THREE.Points( geom, mat );
+				galaxy.visible = true;    
+				// Create the name of the galaxy as a sprite
+				var canvas = document.createElement('canvas');
+				canvas.width = 256;
+				canvas.height = 256;
+				var ctx = canvas.getContext("2d");
+				ctx.font = "44pt Arial";
+				ctx.fillStyle = "white";
+				ctx.textAlign = "center";
+				ctx.fillText(name, 128, 44);
+				var tex = new THREE.Texture(canvas);
+				tex.needsUpdate = true;
+				var spriteMat = new THREE.SpriteMaterial({
+					map: tex
+				});
+				var sprite = new THREE.Sprite(spriteMat);
+				
+				// Finally attach the name to the galaxy, add the galaxy to the 'galaxies' array
+				// and add the galaxy to the scene
+				galaxy.add(sprite);
+				galaxies.push(galaxy);
+				scene1.add(galaxy);
+				galaxy.name = name;
+			};
+	
+			// Function to create the Sun. Similar steps as before (scene 1)
+			var createSun = function(name, radius) {
+				var geom = new THREE.SphereGeometry(radius, 32, 16);
+				var texture = new THREE.TextureLoader().load('images/sunsurface.jpg');
+				var mat = new THREE.MeshBasicMaterial({
+					color: "gold",
+					map: texture
+				});
+				var sun = new THREE.Mesh(geom, mat);
+				sun.visible = false;
+				sun.position.set(8,0,0);
+				
+				var canvas = document.createElement('canvas');
+				canvas.width = 256;
+				canvas.height = 256;
+				var ctx = canvas.getContext("2d");
+				ctx.font = "44pt Arial";
+				ctx.fillStyle = "white";
+				ctx.textAlign = "center";
+				ctx.fillText(name, 128, 44);
+				var tex = new THREE.Texture(canvas);
+				tex.needsUpdate = true;
+				var spriteMat = new THREE.SpriteMaterial({
+					map: tex
+				});
+				var sprite = new THREE.Sprite(spriteMat);
+				
+				sun.add(sprite);
+				solarsys.push(sun);
+				scene1.add(sun);
+			};
+	
+			// Create all the satellite galaxies by name, the Sun and LMC for Scene 1.
+			createGalaxy("AntII");
+			createGalaxy("AquII");
+			createGalaxy("BooI");
+			createGalaxy("BooII");
+			createGalaxy("BooIII");
+			createGalaxy("CVenI");
+			createGalaxy("CVenII");
+			createGalaxy("Car");
+			createGalaxy("CarII");
+			createGalaxy("CarIII");
+			createGalaxy("ColI");
+			createGalaxy("CBer");
+			createGalaxy("CraI");
+			createGalaxy("CraII");
+			createGalaxy("Dra");
+			createGalaxy("DraII");
+			createGalaxy("EriII");
+			createGalaxy("Fnx");
+			createGalaxy("GruI");
+			createGalaxy("GruII");
+			createGalaxy("Her");
+			createGalaxy("HorI");
+			createGalaxy("HorII");
+			createGalaxy("HydraII");
+			createGalaxy("HydrusI");
+			createGalaxy("LeoI");
+			createGalaxy("LeoII");
+			createGalaxy("LeoIV");
+			createGalaxy("LeoV");
+			createGalaxy("LeoT");
+			createGalaxy("PegIII");
+			createGalaxy("Phx");
+			createGalaxy("PhxII");
+			createGalaxy("RetII");
+			createGalaxy("RetIII");
+			createGalaxy("SagII");
+			createGalaxy("Scl");
+			createGalaxy("Seg1");
+			createGalaxy("Seg2");
+			createGalaxy("Sext");
+			createGalaxy("TriII");
+			createGalaxy("TucII");
+			createGalaxy("TucIII");
+			createGalaxy("TucIV");
+			createGalaxy("UMaI");
+			createGalaxy("UMaII");
+			createGalaxy("UMi");
+			createGalaxy("Wil1");
+			createGalaxy("NGC6822");
+			createGalaxy("PiscesII");
+			createGalaxy("TucV");
+			createGalaxy("LMC");
+			createSun("Sun", 1.5);
+			
+			// Scene 2
+			scene2 = new THREE.Scene();
+			
+			// Function to create a single satellite galaxy for scene2.
+			// The satellite galaxy has:
+			// - an initial position (to be updated later)
+			// - a text with its respective name.
+			//		Note that the text is constructed as a sprite, meaning that
+			//		always faces to camera, no matter the camera position
+			// - a texture (for simplicity the same for all galaxies)
+			var createGalaxy2 = function(name) {
+				// Create the geometry
+				var geom = new THREE.BufferGeometry();
+				var points = [];
+				points.push( new THREE.Vector3(0,0,0) );
+				geom.setFromPoints(points);
+				geom.computeVertexNormals();
+				// Create the texture from an image file, using several settings
+				// to make them semi-transparent, pass behind the Milky Way when orbiting, etc 
+				if (dSphs.includes(name)) {
+					var texture = new THREE.TextureLoader().load('images/dSphs.png');
+					var mat = new THREE.PointsMaterial( {
+						color: 0xFFFFFF,
+						size: 20,
+						map: texture,
+						blending: THREE.AdditiveBlending,
+						depthTest: false,
+						transparent: true 
+					} );
+				} else if (UFDs.includes(name)) {
+					var texture = new THREE.TextureLoader().load('images/UFDs.png');
+					var mat = new THREE.PointsMaterial( {
+						color: 0xFFFFFF,
+						size: 20,
+						map: texture,
+						blending: THREE.AdditiveBlending,
+						depthTest: false,
+						transparent: true 
+					} );
+				} else {
+					console.error( 'An error happened' );
+				}
+				// Create a basic galaxy (visible for now)
+				var galaxy = new THREE.Points( geom, mat );
+				galaxy.visible = true;    
+				// Create the name of the galaxy as a sprite
+				var canvas = document.createElement('canvas');
+				canvas.width = 256;
+				canvas.height = 256;
+				var ctx = canvas.getContext("2d");
+				ctx.font = "44pt Arial";
+				ctx.fillStyle = "white";
+				ctx.textAlign = "center";
+				ctx.fillText(name, 128, 44);
+				var tex = new THREE.Texture(canvas);
+				tex.needsUpdate = true;
+				var spriteMat = new THREE.SpriteMaterial({
+					map: tex
+				});
+				var sprite = new THREE.Sprite(spriteMat);
+				
+				// Finally attach the name to the galaxy, add the galaxy to the 'galaxies' array
+				// and add the galaxy to the scene
+				galaxy.add(sprite);
+				galaxies2.push(galaxy);
+				scene2.add(galaxy);
+				galaxy.name = name;
+			};
+			
+			// Function to create the Sun. Similar steps as before (scene 2)
+			var createSun2 = function(name, radius) {
+				var geom = new THREE.SphereGeometry(radius, 32, 16);
+				var texture = new THREE.TextureLoader().load('images/sunsurface.jpg');
+				var mat = new THREE.MeshBasicMaterial({
+					color: "gold",
+					map: texture
+				});
+				var sun = new THREE.Mesh(geom, mat);
+				sun.visible = false;
+				sun.position.set(8,0,0);
+				
+				var canvas = document.createElement('canvas');
+				canvas.width = 256;
+				canvas.height = 256;
+				var ctx = canvas.getContext("2d");
+				ctx.font = "44pt Arial";
+				ctx.fillStyle = "white";
+				ctx.textAlign = "center";
+				ctx.fillText(name, 128, 44);
+				var tex = new THREE.Texture(canvas);
+				tex.needsUpdate = true;
+				var spriteMat = new THREE.SpriteMaterial({
+					map: tex
+				});
+				var sprite = new THREE.Sprite(spriteMat);
+				
+				sun.add(sprite);
+				solarsys2.push(sun);
+				scene2.add(sun);
+			};
+	
+			// Create all the satellite galaxies by name and the Sun for Scene 2.
+			createGalaxy2("AntII");
+			createGalaxy2("AquII");
+			createGalaxy2("BooI");
+			createGalaxy2("BooII");
+			createGalaxy2("BooIII");
+			createGalaxy2("CVenI");
+			createGalaxy2("CVenII");
+			createGalaxy2("Car");
+			createGalaxy2("CarII");
+			createGalaxy2("CarIII");
+			createGalaxy2("ColI");
+			createGalaxy2("CBer");
+			createGalaxy2("CraI");
+			createGalaxy2("CraII");
+			createGalaxy2("Dra");
+			createGalaxy2("DraII");
+			createGalaxy2("EriII");
+			createGalaxy2("Fnx");
+			createGalaxy2("GruI");
+			createGalaxy2("GruII");
+			createGalaxy2("Her");
+			createGalaxy2("HorI");
+			createGalaxy2("HorII");
+			createGalaxy2("HydraII");
+			createGalaxy2("HydrusI");
+			createGalaxy2("LeoI");
+			createGalaxy2("LeoII");
+			createGalaxy2("LeoIV");
+			createGalaxy2("LeoV");
+			createGalaxy2("LeoT");
+			createGalaxy2("PegIII");
+			createGalaxy2("Phx");
+			createGalaxy2("PhxII");
+			createGalaxy2("RetII");
+			createGalaxy2("RetIII");
+			createGalaxy2("SagII");
+			createGalaxy2("Scl");
+			createGalaxy2("Seg1");
+			createGalaxy2("Seg2");
+			createGalaxy2("Sext");
+			createGalaxy2("TriII");
+			createGalaxy2("TucII");
+			createGalaxy2("TucIII");
+			createGalaxy2("TucIV");
+			createGalaxy2("UMaI");
+			createGalaxy2("UMaII");
+			createGalaxy2("UMi");
+			createGalaxy2("Wil1");
+			createGalaxy2("NGC6822");
+			createGalaxy2("PiscesII");
+			createGalaxy2("TucV");
+			createSun2("Sun", 1.5);
+
+			// Add some lights to the scene 1 and 2
+			var light = new THREE.DirectionalLight(0xffffff, 2);
+			light.position.setScalar(10);
+			scene1.add(light);
+			
+			var light2 = new THREE.DirectionalLight(0xffffff, 2);
+			light2.position.setScalar(-10);
+			scene1.add(light2);
+			
+			var light3 = new THREE.DirectionalLight(0xffffff, 2);
+			light3.position.setScalar(10);
+			scene2.add(light3);
+			
+			var light4 = new THREE.DirectionalLight(0xffffff, 2);
+			light4.position.setScalar(-10);
+			scene2.add(light4);
+	
+			// Create the Milky Way (geometry, position, texture, etc) and add it to the scene 1
+			var cylinderGeometry = new THREE.CylinderGeometry(15,15,0.8,32,32);
+			cylinderGeometry.rotateX(-Math.PI * 0.5);
+			var texture = new THREE.TextureLoader().load( 'images/mw.jpg' ); // TextureLoader may have problems in IPhone/Chrome
+			var planeMaterial = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide} );
+			
+			plane1 = new THREE.Mesh(cylinderGeometry, planeMaterial);
+			plane1.receiveShadow = true;
+			plane1.position.set(0,0,0);
+			plane1.visible = false;
+			scene1.add(plane1);
+			
+			// Create the Milky Way (geometry, position, texture, etc) and add it to the scene 2
+			plane2 = new THREE.Mesh(cylinderGeometry, planeMaterial);
+			plane2.receiveShadow = true;
+			plane2.position.set(0,0,0);
+			plane2.visible = false;
+			scene2.add(plane2);
+
+			// Load the orbits file for scene 1
+			var loader = new THREE.FileLoader();
+			loader.load(
+				// resource URL: the data can be a regular file or a php script that retrieves the data 
+				//'readFile.php',
+				'data/orbits1.json',
+	
+				// onLoad callback: this function is called AFTER the data is fully loaded
+				function ( data ) {
+					//console.log( data ) // when debugging: output the text to the console
+					// Convert the data from JSON format to store it as a 2D Javascript array
+					// that contains all the information for the satellite paths.
+					// The array info_path[i][j] is like a 2D table, where the 5 columns (j) are:
+					// "satellite_id, time, x_position_at_time, y_position_at_time, z_position_at_time"
+					// and the rows (i) contain the information at different times.
+					info_path = JSON.parse(data);
+					// Print some info to the web browser console
+					console.log('info_path.length: ' + info_path.length);
+					npoints_per_orbit = info_path.length / info_path[info_path.length-1][0];
+					console.log('npoints_per_orbit: ' + npoints_per_orbit);
+					
+					// Extract the information from the info_path array, use it to construct
+					// the geometries of the orbits, then draw them as lines (with white)
+					// and add them to the scene. 
+					var array_points = [];
+					var current_id = 1.0;
+					for(var i=0;i<info_path.length;i++){
+						if(info_path[i][0] == current_id){
+							array_points.push( new THREE.Vector3(info_path[i][2], info_path[i][3], info_path[i][4]) );
+						} else {
+							var pathGeometry = new THREE.BufferGeometry();
+							pathGeometry.setFromPoints(array_points);
+							if (dSphs.includes(galaxies[current_id-1].name)) {
+								var pathMaterial = new THREE.LineBasicMaterial({color: 'lavender'});
+							} else if (UFDs.includes(galaxies[current_id-1].name)) {
+								var pathMaterial = new THREE.LineBasicMaterial({color: 'khaki'});
+							} else {
+								console.error( 'An error happened' );
+							}
+							var path = new THREE.Line( pathGeometry, pathMaterial );
+							pathGeometries.push(pathGeometry);
+							paths.push(path);
+							scene1.add(path);
+							var name = 'first' + current_id.toString();
+							path.name = name;
+							array_points = [];
+							current_id = info_path[i][0];
+							array_points.push( new THREE.Vector3(info_path[i][2], info_path[i][3], info_path[i][4]) );
+						}
+					}
+					var pathGeometry = new THREE.BufferGeometry();
+					pathGeometry.setFromPoints(array_points);
+					const color_lmc = new THREE.Color("#FFCC33");
+					var pathMaterial = new THREE.LineBasicMaterial({color: color_lmc});
+					var path = new THREE.Line( pathGeometry, pathMaterial );
+					pathGeometries.push(pathGeometry);
+					paths.push(path);
+					scene1.add(path);
+					var name = 'first' + current_id.toString();
+					path.name = name;
+					// Only used when making movies from the animations
+					//if(capturer){
+					//	capturer.start();
+					//}
+				},			
+				
+				// onProgress callback: this function is called WHILE the data is being loaded
+				function ( xhr ) {
+					//let percent = xhr.loaded / xhr.total * 100;
+					//console.log( percent + '% loaded' );
+					//loadingText.innerHTML   = 'Loading... ' + percent.toFixed(0) + ' %';
+					//loadingText.innerHTML   = 'Loading...';
+				},
+	
+				// onError callback: this function is called in case of error while loading the data
+				function ( err ) {
+					// Print information to the web browser console
+					console.error( 'An error happened' );
+				}
+			);
+
+			// Load the orbits file for scene 2
+			var loader2 = new THREE.FileLoader();
+			loader2.load(
+				// resource URL: the data can be a regular file or a php script that retrieves the data 
+				//'readFile.php',
+				'data/orbits2.json',
+	
+				// onLoad callback: this function is called AFTER the data is fully loaded
+				function ( data ) {
+					//console.log( data ) // when debugging: output the text to the console
+					// Convert the data from JSON format to store it as a 2D Javascript array
+					// that contains all the information for the satellite paths.
+					// The array info_path2[i][j] is like a 2D table, where the 5 columns (j) are:
+					// "satellite_id, time, x_position_at_time, y_position_at_time, z_position_at_time"
+					// and the rows (i) contain the information at different times.
+					info_path2 = JSON.parse(data);
+					// Print some info to the web browser console
+					console.log('info_path2.length: ' + info_path2.length);
+					npoints_per_orbit2 = info_path2.length / info_path2[info_path2.length-1][0];
+					console.log('npoints_per_orbit2: ' + npoints_per_orbit2);
+					
+					// Extract the information from the info_path2 array, use it to construct
+					// the geometries of the orbits, then draw them as lines (with white)
+					// and add them to the scene2. 
+					var array_points = [];
+					var current_id = 1.0;
+					for(let i=0;i<info_path2.length;i++){
+						if(info_path2[i][0] == current_id){
+							array_points.push( new THREE.Vector3(info_path2[i][2], info_path2[i][3], info_path2[i][4]) );
+						} else {
+							var pathGeometry = new THREE.BufferGeometry();
+							pathGeometry.setFromPoints(array_points);
+							pathGeometry.setDrawRange(0,1);
+							if (dSphs.includes(galaxies[current_id-1].name)) {
+								var pathMaterial = new THREE.LineBasicMaterial({color: 'lavender'});
+							} else if (UFDs.includes(galaxies[current_id-1].name)) {
+								var pathMaterial = new THREE.LineBasicMaterial({color: 'khaki'});
+							} else {
+								console.error( 'An error happened.' );
+							}
+							var path = new THREE.Line( pathGeometry, pathMaterial );
+							pathGeometries2.push(pathGeometry);
+							paths2.push(path);
+							scene2.add(path);
+							var name = 'second' + current_id.toString();
+							path.name = name;
+	
+							array_points = [];
+							current_id = info_path2[i][0];
+							array_points.push( new THREE.Vector3(info_path2[i][2], info_path2[i][3], info_path2[i][4]) );
+						}
+					}
+					var pathGeometry = new THREE.BufferGeometry();
+					pathGeometry.setFromPoints(array_points);
+					var pathMaterial = new THREE.LineBasicMaterial({color: 'khaki'}); 
+					var path = new THREE.Line( pathGeometry, pathMaterial );
+					pathGeometries2.push(pathGeometry);
+					paths2.push(path);
+					scene2.add(path);
+					var name = 'second' + current_id.toString();
+					path.name = name;
+					
+					// Choosing default scene as scene1
+					scene = scene1;
+					var withlmc = document.getElementById("withlmc");
+					withlmc.style.backgroundColor = "darkgrey";
+					
+					// Only used when making movies from the animations
+					//if(capturer){
+					//	capturer.start();
+					//}
+				},
+				
+				// onProgress callback: this function is called WHILE the data is being loaded
+				function ( xhr ) {
+					//let percent = xhr.loaded / xhr.total * 100;
+					//console.log( percent + '% loaded' );
+					//loadingText.innerHTML   = 'Loading... ' + percent.toFixed(0) + ' %';
+					//loadingText.innerHTML   = 'Loading...';
+				},
+	
+				// onError callback: this function is called in case of error while loading the data
+				function ( err ) {
+					// Print information to the web browser console
+					console.error( 'An error happened' );
+				}
+			);
+	
+			// Add the event listener to manage the case when the web browser window is resized (or phone is rotated)
+			window.addEventListener( 'resize', onWindowResize, false );
+		} // end of init()
+	
+		// This function is called when the web browser window is resized
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
+	
+		// This function is called at every animation frame
+		function animate() {
+			if (!isPaused) {
+				if (isForward) {
+					requestAnimationFrame(animate); // Usual ThreeJS function
+				
+					// Proceed only if there is orbit information loaded
+					if(info_path != null  && info_path2 != null){
+						// Empty the "loading" text
+						loadingText.innerHTML = ' ';
+						// Keep 'count' below the npoints_per_orbit
+						if(count >= npoints_per_orbit  && count >= npoints_per_orbit2){
+							count = 0;
+						}
+						// Update the 'time' text on the screen. 
+						// The data is in Myr and on the screen should be in Gyr.
+						var time = (Number(info_path[count][1]))/1000.0;
+						timeText.innerHTML   = 'Time = ' + time.toFixed(2) + ' Gyr';
+						// Make the Milky Way visible
+						plane1.visible = true;
+						plane2.visible = true;
+						// Loop for each element in the solarsys array (normally there is just 1 Sun)
+						solarsys.forEach(function(sun) {
+							// Make Sun visible only at certain time and for less than 400 frames
+							if(time == 0.0 && skipcount < 400){
+								sun.visible = true;
+							} else {
+								sun.visible = false;
+							}
+							// Scale the name of the Sun according to camera position
+							var scaleFactor = 8;
+							var sprite = sun.children[0];
+							var scale = scaleVector.subVectors(sun.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						});
+
+						// Loop for each element in the solarsys2 array (normally there is just 1 Sun)				
+						solarsys2.forEach(function(sun2) {
+							// Make Sun visible only at certain time and for less than 400 frames
+							if(time == 0.0 && skipcount < 400){
+								sun2.visible = true;
+							} else {
+								sun2.visible = false;
+							}
+							// Scale the name of the Sun according to camera position
+							var scaleFactor = 8;
+							var sprite = sun2.children[0];
+							var scale = scaleVector.subVectors(sun2.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						});
+			
+						// Loop for each element in the 'galaxies' array, that is every satellite galaxy
+						for (var i = 0; i < galaxies.length; i++) {
+							// Update the position of the galaxy for the current frame/time
+							var galaxy = galaxies[i];
+							var newArrayPoints = [info_path[(i * npoints_per_orbit) + count][2], info_path[(i * npoints_per_orbit) + count][3], info_path[(i * npoints_per_orbit) + count][4]];
+							galaxy.position.x = newArrayPoints[0];
+							galaxy.position.y = newArrayPoints[1];
+							galaxy.position.z = newArrayPoints[2];
+							
+							var pathGeometry = pathGeometries[i];
+							if (pathGeometry instanceof THREE.BufferGeometry) {
+								// Establecer los rangos de dibujo en el objeto de BufferGeometry
+								pathGeometry.setDrawRange(0,count);
+							}
+							
+							// Scale the name of the galaxy according to camera position
+							var scaleFactor = 8;
+							var sprite = galaxy.children[0];
+							var scale = scaleVector.subVectors(galaxy.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						};
+						
+						// Loop for each element in the 'galaxies2' array, that is every satellite galaxy
+						for (var i = 0; i < galaxies2.length; i++) {
+							// Update the position of the galaxy for the current frame/time
+							var galaxy = galaxies2[i];
+							var newArrayPoints = [info_path2[(i * npoints_per_orbit2) + count][2], info_path2[(i * npoints_per_orbit2) + count][3], info_path2[(i * npoints_per_orbit2) + count][4]];
+							galaxy.position.x = newArrayPoints[0];
+							galaxy.position.y = newArrayPoints[1];
+							galaxy.position.z = newArrayPoints[2];
+							
+							var pathGeometry = pathGeometries2[i];
+							if (pathGeometry instanceof THREE.BufferGeometry) {
+								// Establecer los rangos de dibujo en el objeto de BufferGeometry
+								pathGeometry.setDrawRange(0,count);
+							}
+							
+							// Scale the name of the galaxy according to camera position
+							var scaleFactor = 8;
+							var sprite = galaxy.children[0];
+							var scale = scaleVector.subVectors(galaxy.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						};
+
+						// Camera animation at two points in the orbits, for a duration of 400 frames
+						if( (time == 0.0 || time == -1.0) && skipcount < 400){
+							var x = camera.position.x;
+							var y = camera.position.y;
+							var z = camera.position.z;
+							// dir=0: camera flying away from the Milky Way
+							// dir=1: camera flying towards the Milky Way
+							// Change of camera flying-direction is at 80kpc and 300kpc
+							// The camera flight is implemented as a "spiral" movement with respect to the plane of the Milky Way
+							if(dir == 0){
+								camera.position.x = (x * Math.cos(0.001) - y * Math.sin(0.001)) * 1.0015;
+								camera.position.y = (x * Math.sin(0.001) + y * Math.cos(0.001)) * 1.0015;
+								camera.position.z = z * 1.0015;
+								if( Math.sqrt((camera.position.x)**2+(camera.position.y)**2+(camera.position.z)**2) > 300 ){
+									dir = 1;
+								}
+							} else {
+								camera.position.x = (x * Math.cos(0.001) - y * Math.sin(0.001)) / 1.0015;
+								camera.position.y = (x * Math.sin(0.001) + y * Math.cos(0.001)) / 1.0015;
+								camera.position.z = z / 1.0015;
+								if( Math.sqrt((camera.position.x)**2+(camera.position.y)**2+(camera.position.z)**2) < 80 ){
+									dir = 0;
+								}
+							}
+						}
+						
+						// Update the orbit controls (via mouse/touch)
+						controls.update();
+			
+						if( (time == 0.0 || time == -1.0) && skipcount < 400){
+							skipcount++;
+						} else {
+							skipcount = 0;
+							count = count + 4; //4
+						}
+			
+						// Only used when making movies from the animation
+						//if(capturer && nframes == 7403){ 
+						//	capturer.stop();
+						//	capturer.save();
+						//}
+						////console.log( time + ' ' + nframes);
+						//nframes = nframes + 1;
+					}
+					render();
+				} else if (isBack) {
+					requestAnimationFrame(animate); // Usual ThreeJS function
+				
+					// Proceed only if there is orbit information loaded
+					if(info_path != null  && info_path2 != null){
+						// Empty the "loading" text
+						loadingText.innerHTML = ' ';
+						// Keep 'count' below the npoints_per_orbit
+						if(count >= npoints_per_orbit  && count >= npoints_per_orbit2){
+							count = 0;
+						}
+						// Update the 'time' text on the screen. 
+						// The data is in Myr and on the screen should be in Gyr.
+						var time = (Number(info_path[count][1]))/1000.0;
+						timeText.innerHTML   = 'Time = ' + time.toFixed(2) + ' Gyr';
+						// Make the Milky Way visible
+						plane1.visible = true;
+						plane2.visible = true;
+						// Loop for each element in the solarsys array (normally there is just 1 Sun)
+						solarsys.forEach(function(sun) {
+							// Make Sun visible only at certain time and for less than 400 frames
+							if(time == 0.0 && skipcount < 400){
+								sun.visible = true;
+							} else {
+								sun.visible = false;
+							}
+							// Scale the name of the Sun according to camera position
+							var scaleFactor = 8;
+							var sprite = sun.children[0];
+							var scale = scaleVector.subVectors(sun.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						});
+
+						// Loop for each element in the solarsys2 array (normally there is just 1 Sun)				
+						solarsys2.forEach(function(sun2) {
+							// Make Sun visible only at certain time and for less than 400 frames
+							if(time == 0.0 && skipcount < 400){
+								sun2.visible = true;
+							} else {
+								sun2.visible = false;
+							}
+							// Scale the name of the Sun according to camera position
+							var scaleFactor = 8;
+							var sprite = sun2.children[0];
+							var scale = scaleVector.subVectors(sun2.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						});
+			
+						// Loop for each element in the 'galaxies' array, that is every satellite galaxy
+						for (var i = 0; i < galaxies.length; i++) {
+							// Update the position of the galaxy for the current frame/time
+							var galaxy = galaxies[i];
+							var newArrayPoints = [info_path[(i * npoints_per_orbit) + count][2], info_path[(i * npoints_per_orbit) + count][3], info_path[(i * npoints_per_orbit) + count][4]];
+							galaxy.position.x = newArrayPoints[0];
+							galaxy.position.y = newArrayPoints[1];
+							galaxy.position.z = newArrayPoints[2];
+							
+							var pathGeometry = pathGeometries[i];
+							if (pathGeometry instanceof THREE.BufferGeometry) {
+								// Establecer los rangos de dibujo en el objeto de BufferGeometry
+								pathGeometry.setDrawRange(0,count);
+							}
+							
+							// Scale the name of the galaxy according to camera position
+							var scaleFactor = 8;
+							var sprite = galaxy.children[0];
+							var scale = scaleVector.subVectors(galaxy.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						};
+						
+						// Loop for each element in the 'galaxies2' array, that is every satellite galaxy
+						for (var i = 0; i < galaxies2.length; i++) {
+							// Update the position of the galaxy for the current frame/time
+							var galaxy = galaxies2[i];
+							var newArrayPoints = [info_path2[(i * npoints_per_orbit2) + count][2], info_path2[(i * npoints_per_orbit2) + count][3], info_path2[(i * npoints_per_orbit2) + count][4]];
+							galaxy.position.x = newArrayPoints[0];
+							galaxy.position.y = newArrayPoints[1];
+							galaxy.position.z = newArrayPoints[2];
+							
+							var pathGeometry = pathGeometries2[i];
+							if (pathGeometry instanceof THREE.BufferGeometry) {
+								// Establecer los rangos de dibujo en el objeto de BufferGeometry
+								pathGeometry.setDrawRange(0,count);
+							}
+							
+							// Scale the name of the galaxy according to camera position
+							var scaleFactor = 8;
+							var sprite = galaxy.children[0];
+							var scale = scaleVector.subVectors(galaxy.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						};
+
+						// Camera animation at two points in the orbits, for a duration of 400 frames
+						if( (time == 0.0 || time == -1.0) && skipcount < 400){
+							var x = camera.position.x;
+							var y = camera.position.y;
+							var z = camera.position.z;
+							// dir=0: camera flying away from the Milky Way
+							// dir=1: camera flying towards the Milky Way
+							// Change of camera flying-direction is at 80kpc and 300kpc
+							// The camera flight is implemented as a "spiral" movement with respect to the plane of the Milky Way
+							if(dir == 0){
+								camera.position.x = (x * Math.cos(0.001) - y * Math.sin(0.001)) * 1.0015;
+								camera.position.y = (x * Math.sin(0.001) + y * Math.cos(0.001)) * 1.0015;
+								camera.position.z = z * 1.0015;
+								if( Math.sqrt((camera.position.x)**2+(camera.position.y)**2+(camera.position.z)**2) > 300 ){
+									dir = 1;
+								}
+							} else {
+								camera.position.x = (x * Math.cos(0.001) - y * Math.sin(0.001)) / 1.0015;
+								camera.position.y = (x * Math.sin(0.001) + y * Math.cos(0.001)) / 1.0015;
+								camera.position.z = z / 1.0015;
+								if( Math.sqrt((camera.position.x)**2+(camera.position.y)**2+(camera.position.z)**2) < 80 ){
+									dir = 0;
+								}
+							}
+						}
+						
+						// Update the orbit controls (via mouse/touch)
+						controls.update();
+			
+						if( (time == 0.0 || time == -1.0) && skipcount < 400){
+							skipcount++;
+						} else {
+							skipcount = 0;
+							count = 0; //4
+						}
+			
+						// Only used when making movies from the animation
+						//if(capturer && nframes == 7403){ 
+						//	capturer.stop();
+						//	capturer.save();
+						//}
+						////console.log( time + ' ' + nframes);
+						//nframes = nframes + 1;
+					}
+					render();
+				} else {
+					requestAnimationFrame(animate); // Usual ThreeJS function
+				
+					// Proceed only if there is orbit information loaded
+					if(info_path != null  && info_path2 != null){
+						// Empty the "loading" text
+						loadingText.innerHTML = ' ';
+						// Keep 'count' below the npoints_per_orbit
+						if(count >= npoints_per_orbit  && count >= npoints_per_orbit2){
+							count = 0;
+						}
+						// Update the 'time' text on the screen. 
+						// The data is in Myr and on the screen should be in Gyr.
+						var time = (Number(info_path[count][1]))/1000.0;
+						timeText.innerHTML   = 'Time = ' + time.toFixed(2) + ' Gyr';
+						// Make the Milky Way visible
+						plane1.visible = true;
+						plane2.visible = true;
+						// Loop for each element in the solarsys array (normally there is just 1 Sun)
+						solarsys.forEach(function(sun) {
+							// Make Sun visible only at certain time and for less than 400 frames
+							if(time == 0.0 && skipcount < 400){
+								sun.visible = true;
+							} else {
+								sun.visible = false;
+							}
+							// Scale the name of the Sun according to camera position
+							var scaleFactor = 8;
+							var sprite = sun.children[0];
+							var scale = scaleVector.subVectors(sun.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						});
+
+						// Loop for each element in the solarsys2 array (normally there is just 1 Sun)				
+						solarsys2.forEach(function(sun2) {
+							// Make Sun visible only at certain time and for less than 400 frames
+							if(time == 0.0 && skipcount < 400){
+								sun2.visible = true;
+							} else {
+								sun2.visible = false;
+							}
+							// Scale the name of the Sun according to camera position
+							var scaleFactor = 8;
+							var sprite = sun2.children[0];
+							var scale = scaleVector.subVectors(sun2.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						});
+			
+						// Loop for each element in the 'galaxies' array, that is every satellite galaxy
+						for (var i = 0; i < galaxies.length; i++) {
+							// Update the position of the galaxy for the current frame/time
+							var galaxy = galaxies[i];
+							var newArrayPoints = [info_path[(i * npoints_per_orbit) + count][2], info_path[(i * npoints_per_orbit) + count][3], info_path[(i * npoints_per_orbit) + count][4]];
+							galaxy.position.x = newArrayPoints[0];
+							galaxy.position.y = newArrayPoints[1];
+							galaxy.position.z = newArrayPoints[2];
+							
+							var pathGeometry = pathGeometries[i];
+							if (pathGeometry instanceof THREE.BufferGeometry) {
+								// Establecer los rangos de dibujo en el objeto de BufferGeometry
+								pathGeometry.setDrawRange(0,count);
+							}
+							
+							// Scale the name of the galaxy according to camera position
+							var scaleFactor = 8;
+							var sprite = galaxy.children[0];
+							var scale = scaleVector.subVectors(galaxy.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						};
+						
+						// Loop for each element in the 'galaxies2' array, that is every satellite galaxy
+						for (var i = 0; i < galaxies2.length; i++) {
+							// Update the position of the galaxy for the current frame/time
+							var galaxy = galaxies2[i];
+							var newArrayPoints = [info_path2[(i * npoints_per_orbit2) + count][2], info_path2[(i * npoints_per_orbit2) + count][3], info_path2[(i * npoints_per_orbit2) + count][4]];
+							galaxy.position.x = newArrayPoints[0];
+							galaxy.position.y = newArrayPoints[1];
+							galaxy.position.z = newArrayPoints[2];
+							
+							var pathGeometry = pathGeometries2[i];
+							if (pathGeometry instanceof THREE.BufferGeometry) {
+								// Establecer los rangos de dibujo en el objeto de BufferGeometry
+								pathGeometry.setDrawRange(0,count);
+							}
+							
+							// Scale the name of the galaxy according to camera position
+							var scaleFactor = 8;
+							var sprite = galaxy.children[0];
+							var scale = scaleVector.subVectors(galaxy.position, camera.position).length() / scaleFactor;
+							sprite.scale.set(scale, scale, 1);
+						};
+
+						// Camera animation at two points in the orbits, for a duration of 400 frames
+						if( (time == 0.0 || time == -1.0) && skipcount < 400){
+							var x = camera.position.x;
+							var y = camera.position.y;
+							var z = camera.position.z;
+							// dir=0: camera flying away from the Milky Way
+							// dir=1: camera flying towards the Milky Way
+							// Change of camera flying-direction is at 80kpc and 300kpc
+							// The camera flight is implemented as a "spiral" movement with respect to the plane of the Milky Way
+							if(dir == 0){
+								camera.position.x = (x * Math.cos(0.001) - y * Math.sin(0.001)) * 1.0015;
+								camera.position.y = (x * Math.sin(0.001) + y * Math.cos(0.001)) * 1.0015;
+								camera.position.z = z * 1.0015;
+								if( Math.sqrt((camera.position.x)**2+(camera.position.y)**2+(camera.position.z)**2) > 300 ){
+									dir = 1;
+								}
+							} else {
+								camera.position.x = (x * Math.cos(0.001) - y * Math.sin(0.001)) / 1.0015;
+								camera.position.y = (x * Math.sin(0.001) + y * Math.cos(0.001)) / 1.0015;
+								camera.position.z = z / 1.0015;
+								if( Math.sqrt((camera.position.x)**2+(camera.position.y)**2+(camera.position.z)**2) < 80 ){
+									dir = 0;
+								}
+							}
+						}
+						
+						// Update the orbit controls (via mouse/touch)
+						controls.update();
+			
+						if( (time == 0.0 || time == -1.0) && skipcount < 400){
+							skipcount++;
+						} else {
+							skipcount = 0;
+							count = count + 1; //4
+						}
+			
+						// Only used when making movies from the animation
+						//if(capturer && nframes == 7403){ 
+						//	capturer.stop();
+						//	capturer.save();
+						//}
+						////console.log( time + ' ' + nframes);
+						//nframes = nframes + 1;
+					}
+					render();
+				}
+			} else {
+				requestAnimationFrame(animate); // Usual ThreeJS function
+			
+				// Proceed only if there is orbit information loaded
+				if(info_path != null  && info_path2 != null){
+					// Empty the "loading" text
+					loadingText.innerHTML = ' ';
+					// Keep 'count' below the npoints_per_orbit
+					if(count >= npoints_per_orbit  && count >= npoints_per_orbit2){
+						count = 0;
+					}
+					// Update the 'time' text on the screen. 
+					// The data is in Myr and on the screen should be in Gyr.
+					var time = (Number(info_path[count][1]))/1000.0;
+					timeText.innerHTML   = 'Time = ' + time.toFixed(2) + ' Gyr';
+					// Make the Milky Way visible
+					plane1.visible = true;
+					plane2.visible = true;
+					// Loop for each element in the solarsys array (normally there is just 1 Sun)
+					solarsys.forEach(function(sun) {
+						// Make Sun visible only at certain time and for less than 400 frames
+						if(time == 0.0 && skipcount < 400){
+							sun.visible = true;
+						} else {
+							sun.visible = false;
+						}
+						// Scale the name of the Sun according to camera position
+						var scaleFactor = 8;
+						var sprite = sun.children[0];
+						var scale = scaleVector.subVectors(sun.position, camera.position).length() / scaleFactor;
+						sprite.scale.set(scale, scale, 1);
+					});
+
+					// Loop for each element in the solarsys2 array (normally there is just 1 Sun)				
+					solarsys2.forEach(function(sun2) {
+						// Make Sun visible only at certain time and for less than 400 frames
+						if(time == 0.0 && skipcount < 400){
+							sun2.visible = true;
+						} else {
+							sun2.visible = false;
+						}
+						// Scale the name of the Sun according to camera position
+						var scaleFactor = 8;
+						var sprite = sun2.children[0];
+						var scale = scaleVector.subVectors(sun2.position, camera.position).length() / scaleFactor;
+						sprite.scale.set(scale, scale, 1);
+					});
+		
+					// Loop for each element in the 'galaxies' array, that is every satellite galaxy
+					for (var i = 0; i < galaxies.length; i++) {
+						// Update the position of the galaxy for the current frame/time
+						var galaxy = galaxies[i];
+						var newArrayPoints = [info_path[(i * npoints_per_orbit) + count][2], info_path[(i * npoints_per_orbit) + count][3], info_path[(i * npoints_per_orbit) + count][4]];
+						galaxy.position.x = newArrayPoints[0];
+						galaxy.position.y = newArrayPoints[1];
+						galaxy.position.z = newArrayPoints[2];
+						
+						var pathGeometry = pathGeometries[i];
+						if (pathGeometry instanceof THREE.BufferGeometry) {
+							// Establecer los rangos de dibujo en el objeto de BufferGeometry
+							pathGeometry.setDrawRange(0,count);
+						}
+						
+						// Scale the name of the galaxy according to camera position
+						var scaleFactor = 8;
+						var sprite = galaxy.children[0];
+						var scale = scaleVector.subVectors(galaxy.position, camera.position).length() / scaleFactor;
+						sprite.scale.set(scale, scale, 1);
+					};
+					
+					// Loop for each element in the 'galaxies2' array, that is every satellite galaxy
+					for (var i = 0; i < galaxies2.length; i++) {
+						// Update the position of the galaxy for the current frame/time
+						var galaxy = galaxies2[i];
+						var newArrayPoints = [info_path2[(i * npoints_per_orbit2) + count][2], info_path2[(i * npoints_per_orbit2) + count][3], info_path2[(i * npoints_per_orbit2) + count][4]];
+						galaxy.position.x = newArrayPoints[0];
+						galaxy.position.y = newArrayPoints[1];
+						galaxy.position.z = newArrayPoints[2];
+						
+						var pathGeometry = pathGeometries2[i];
+						if (pathGeometry instanceof THREE.BufferGeometry) {
+							// Establecer los rangos de dibujo en el objeto de BufferGeometry
+							pathGeometry.setDrawRange(0,count);
+						}
+						
+						// Scale the name of the galaxy according to camera position
+						var scaleFactor = 8;
+						var sprite = galaxy.children[0];
+						var scale = scaleVector.subVectors(galaxy.position, camera.position).length() / scaleFactor;
+						sprite.scale.set(scale, scale, 1);
+					};
+
+					// Update the orbit controls (via mouse/touch)
+					controls.update();
+		
+					if( (time == 0.0 || time == -1.0) && skipcount < 400){
+						skipcount++;
+					} else {
+						skipcount = 0;
+						count = count; //4
+					}
+		
+					// Only used when making movies from the animation
+					//if(capturer && nframes == 7403){ 
+					//	capturer.stop();
+					//	capturer.save();
+					//}
+					////console.log( time + ' ' + nframes);
+					//nframes = nframes + 1;
+				}
+				render();
+			}
+		}
+	
+		function render() {
+			renderer.render(scene, camera);
+
+			// Only used when making movies from the animation
+			//if(capturer){
+			//	capturer.capture( renderer.domElement );
+			//}
+		}
+		
+		var showPathsCheckbox = document.getElementById('show-paths');
+		showPathsCheckbox.addEventListener('click', function() {
+			// Si la checkbox está marcada, mostrar los paths, de lo contrario, ocultarlos
+			if (this.checked) {
+				for (var i = 0; i < paths2.length; i++) {
+					paths[i].visible =! paths[i].visible;
+					paths2[i].visible = paths2[i].visible;
+				}
+			} else {
+				for (var i = 0; i < paths2.length; i++) {
+					paths[i].visible = false;
+					paths2[i].visible = false;
+				}
+			}
+		});
+		
+		var checkbox0 = document.getElementById("select");
+		checkbox0.addEventListener("click", function() {
+			if (checkbox0.checked) {
+				showPathsCheckbox.disabled = false;
+			} else {
+				showPathsCheckbox.disabled = true;
+			}
+			for (var i = 0; i < galaxies.length-1; i++) {
+				galaxies[i].visible = checkbox0.checked;
+				paths[i].visible = checkbox0.checked;
+				galaxies2[i].visible = checkbox0.checked;
+				paths2[i].visible = checkbox0.checked;
+			}
+		});
+		
+		var checkbox1 = document.getElementById("AntII");
+		checkbox1.addEventListener("click", function() {
+			var object11 = scene1.getObjectByName( "AntII" );
+			var path11 = scene1.getObjectByName( "first1" );
+			object11.visible = checkbox1.checked;
+			path11.visible = checkbox1.checked;
+			var object12 = scene2.getObjectByName( "AntII" );
+			var path12 = scene2.getObjectByName( "second1" );
+			object12.visible = checkbox1.checked;
+			path12.visible = checkbox1.checked;
+		});
+
+		var checkbox2 = document.getElementById("AquII");
+		checkbox2.addEventListener("click", function() {
+			var object21 = scene1.getObjectByName( "AquII" );
+			var path21 = scene1.getObjectByName( "first2" );
+			object21.visible = !object21.visible;
+			path21.visible = !path21.visible;
+			var object22 = scene2.getObjectByName( "AquII" );
+			var path22 = scene2.getObjectByName( "second2" );
+			object22.visible = !object22.visible;
+			path22.visible = !path22.visible;
+		});
+
+		var checkbox3 = document.getElementById("BooI");
+		checkbox3.addEventListener("click", function() {
+			var object31 = scene1.getObjectByName( "BooI" );
+			var path31 = scene1.getObjectByName( "first3" );
+			object31.visible = !object31.visible;
+			path31.visible = !path31.visible;
+			var object32 = scene2.getObjectByName( "BooI" );
+			var path32 = scene2.getObjectByName( "second3" );
+			object32.visible = !object32.visible;
+			path32.visible = !path32.visible;
+		});
+		
+		var checkbox4 = document.getElementById("BooII");
+		checkbox4.addEventListener("click", function() {
+			var object41 = scene1.getObjectByName( "BooII" );
+			var path41 = scene1.getObjectByName( "first4" );
+			object41.visible = !object41.visible;
+			path41.visible = !path41.visible;
+			var object42 = scene2.getObjectByName( "BooII" );
+			var path42 = scene2.getObjectByName( "second4" );
+			object42.visible = !object42.visible;
+			path42.visible = !path42.visible;
+		});
+		
+		var checkbox5 = document.getElementById("BooIII");
+		checkbox5.addEventListener("click", function() {
+			var object51 = scene1.getObjectByName( "BooIII" );
+			var path51 = scene1.getObjectByName( "first5" );
+			object51.visible = !object51.visible;
+			path51.visible = !path51.visible;
+			var object52 = scene2.getObjectByName( "BooIII" );
+			var path52 = scene2.getObjectByName( "second5" );
+			object52.visible = !object52.visible;
+			path52.visible = !path52.visible;
+		});
+		
+		var checkbox6 = document.getElementById("CVenI");
+		checkbox6.addEventListener("click", function() {
+			var object61 = scene1.getObjectByName( "CVenI" );
+			var path61 = scene1.getObjectByName( "first6" );
+			object61.visible = !object61.visible;
+			path61.visible = !path61.visible;
+			var object62 = scene2.getObjectByName( "CVenI" );
+			var path62 = scene2.getObjectByName( "second6" );
+			object62.visible = !object62.visible;
+			path62.visible = !path62.visible;
+		});
+		
+		var checkbox7 = document.getElementById("CVenII");
+		checkbox7.addEventListener("click", function() {
+			var object71 = scene1.getObjectByName( "CVenII" );
+			var path71 = scene1.getObjectByName( "first7" );
+			object71.visible = !object71.visible;
+			path71.visible = !path71.visible;
+			var object72 = scene2.getObjectByName( "CVenII" );
+			var path72 = scene2.getObjectByName( "second7" );
+			object72.visible = !object72.visible;
+			path72.visible = !path72.visible;
+		});
+		
+		var checkbox8 = document.getElementById("Car");
+		checkbox8.addEventListener("click", function() {
+			var object81 = scene1.getObjectByName( "Car" );
+			var path81 = scene1.getObjectByName( "first8" );
+			object81.visible = !object81.visible;
+			path81.visible = !path81.visible;
+			var object82 = scene2.getObjectByName( "Car" );
+			var path82 = scene2.getObjectByName( "second8" );
+			object82.visible = !object82.visible;
+			path82.visible = !path82.visible;
+		});
+		
+		var checkbox9 = document.getElementById("CarII");
+		checkbox9.addEventListener("click", function() {
+			var object91 = scene1.getObjectByName( "CarII" );
+			var path91 = scene1.getObjectByName( "first9" );
+			object91.visible = !object91.visible;
+			path91.visible = !path91.visible;
+			var object92 = scene2.getObjectByName( "CarII" );
+			var path92 = scene2.getObjectByName( "second9" );
+			object92.visible = !object92.visible;
+			path92.visible = !path92.visible;
+		});
+		
+		var checkbox10 = document.getElementById("CarIII");
+		checkbox10.addEventListener("click", function() {
+			var object101 = scene1.getObjectByName( "CarIII" );
+			var path101 = scene1.getObjectByName( "first10" );
+			object101.visible = !object101.visible;
+			path101.visible = !path101.visible;
+			var object102 = scene2.getObjectByName( "CarIII" );
+			var path102 = scene2.getObjectByName( "second10" );
+			object102.visible = !object102.visible;
+			path102.visible = !path102.visible;
+		});
+		
+		var checkbox11 = document.getElementById("ColI");
+		checkbox11.addEventListener("click", function() {
+			var object111 = scene1.getObjectByName( "ColI" );
+			var path111 = scene1.getObjectByName( "first11" );
+			object111.visible = !object111.visible;
+			path111.visible = !path111.visible;
+			var object112 = scene2.getObjectByName( "ColI" );
+			var path112 = scene2.getObjectByName( "second11" );
+			object112.visible = !object112.visible;
+			path112.visible = !path112.visible;
+		});
+		
+		var checkbox12 = document.getElementById("CBer");
+		checkbox12.addEventListener("click", function() {
+			var object121 = scene1.getObjectByName( "CBer" );
+			var path121 = scene1.getObjectByName( "first12" );
+			object121.visible = !object121.visible;
+			path121.visible = !path121.visible;
+			var object122 = scene2.getObjectByName( "CBer" );
+			var path122 = scene2.getObjectByName( "second12" );
+			object122.visible = !object122.visible;
+			path122.visible = !path122.visible;
+		});
+		
+		var checkbox13 = document.getElementById("CraI");
+		checkbox13.addEventListener("click", function() {
+			var object131 = scene1.getObjectByName( "CraI" );
+			var path131 = scene1.getObjectByName( "first13" );
+			object131.visible = !object131.visible;
+			path131.visible = !path131.visible;
+			var object132 = scene2.getObjectByName( "CraI" );
+			var path132 = scene2.getObjectByName( "second13" );
+			object132.visible = !object132.visible;
+			path132.visible = !path132.visible;
+		});
+		
+		var checkbox14 = document.getElementById("CraII");
+		checkbox14.addEventListener("click", function() {
+			var object141 = scene1.getObjectByName( "CraII" );
+			var path141 = scene1.getObjectByName( "first14" );
+			object141.visible = !object141.visible;
+			path141.visible = !path141.visible;
+			var object142 = scene2.getObjectByName( "CraII" );
+			var path142 = scene2.getObjectByName( "second14" );
+			object142.visible = !object142.visible;
+			path142.visible = !path142.visible;
+		});
+		
+		var checkbox15 = document.getElementById("Dra");
+		checkbox15.addEventListener("click", function() {
+			var object151 = scene1.getObjectByName( "Dra" );
+			var path151 = scene1.getObjectByName( "first15" );
+			object151.visible = !object151.visible;
+			path151.visible = !path151.visible;
+			var object152 = scene2.getObjectByName( "Dra" );
+			var path152 = scene2.getObjectByName( "second15" );
+			object152.visible = !object152.visible;
+			path152.visible = !path152.visible;
+		});
+		
+		var checkbox16 = document.getElementById("DraII");
+		checkbox16.addEventListener("click", function() {
+			var object161 = scene1.getObjectByName( "DraII" );
+			var path161 = scene1.getObjectByName( "first16" );
+			object161.visible = !object161.visible;
+			path161.visible = !path161.visible;
+			var object162 = scene2.getObjectByName( "DraII" );
+			var path162 = scene2.getObjectByName( "second16" );
+			object162.visible = !object162.visible;
+			path162.visible = !path162.visible;
+		});
+		
+		var checkbox17 = document.getElementById("EriII");
+		checkbox17.addEventListener("click", function() {
+			var object171 = scene1.getObjectByName( "EriII" );
+			var path171 = scene1.getObjectByName( "first17" );
+			object171.visible = !object171.visible;
+			path171.visible = !path171.visible;
+			var object172 = scene2.getObjectByName( "EriII" );
+			var path172 = scene2.getObjectByName( "second17" );
+			object172.visible = !object172.visible;
+			path172.visible = !path172.visible;
+		});
+		
+		var checkbox18 = document.getElementById("Fnx");
+		checkbox18.addEventListener("click", function() {
+			var object181 = scene1.getObjectByName( "Fnx" );
+			var path181 = scene1.getObjectByName( "first18" );
+			object181.visible = !object181.visible;
+			path181.visible = !path181.visible;
+			var object182 = scene2.getObjectByName( "Fnx" );
+			var path182 = scene2.getObjectByName( "second18" );
+			object182.visible = !object182.visible;
+			path182.visible = !path182.visible;
+		});
+		
+		var checkbox19 = document.getElementById("GruI");
+		checkbox19.addEventListener("click", function() {
+			var object191 = scene1.getObjectByName( "GruI" );
+			var path191 = scene1.getObjectByName( "first19" );
+			object191.visible = !object191.visible;
+			path191.visible = !path191.visible;
+			var object192 = scene2.getObjectByName( "GruI" );
+			var path192 = scene2.getObjectByName( "second19" );
+			object192.visible = !object192.visible;
+			path192.visible = !path192.visible;
+		});
+		
+		var checkbox20 = document.getElementById("GruII");
+		checkbox20.addEventListener("click", function() {
+			var object201 = scene1.getObjectByName( "GruII" );
+			var path201 = scene1.getObjectByName( "first20" );
+			object201.visible = !object201.visible;
+			path201.visible = !path201.visible;
+			var object202 = scene2.getObjectByName( "GruII" );
+			var path202 = scene2.getObjectByName( "second20" );
+			object202.visible = !object202.visible;
+			path202.visible = !path202.visible;
+		});
+		
+		var checkbox21 = document.getElementById("Her");
+		checkbox21.addEventListener("click", function() {
+			var object211 = scene1.getObjectByName( "Her" );
+			var path211 = scene1.getObjectByName( "first21" );
+			object211.visible = !object211.visible;
+			path211.visible = !path211.visible;
+			var object212 = scene2.getObjectByName( "Her" );
+			var path212 = scene2.getObjectByName( "second21" );
+			object212.visible = !object212.visible;
+			path212.visible = !path212.visible;
+		});
+		
+		var checkbox22 = document.getElementById("HorI");
+		checkbox22.addEventListener("click", function() {
+			var object221 = scene1.getObjectByName( "HorI" );
+			var path221 = scene1.getObjectByName( "first22" );
+			object221.visible = !object221.visible;
+			path221.visible = !path221.visible;
+			var object222 = scene2.getObjectByName( "HorI" );
+			var path222 = scene2.getObjectByName( "second22" );
+			object222.visible = !object222.visible;
+			path222.visible = !path222.visible;
+		});
+		
+		var checkbox23 = document.getElementById("HorII");
+		checkbox23.addEventListener("click", function() {
+			var object231 = scene1.getObjectByName( "HorII" );
+			var path231 = scene1.getObjectByName( "first23" );
+			object231.visible = !object231.visible;
+			path231.visible = !path231.visible;
+			var object232 = scene2.getObjectByName( "HorII" );
+			var path232 = scene2.getObjectByName( "second23" );
+			object232.visible = !object232.visible;
+			path232.visible = !path232.visible;
+		});
+		
+		var checkbox24 = document.getElementById("HydraII");
+		checkbox24.addEventListener("click", function() {
+			var object241 = scene1.getObjectByName( "HydraII" );
+			var path241 = scene1.getObjectByName( "first24" );
+			object241.visible = !object241.visible;
+			path241.visible = !path241.visible;
+			var object242 = scene2.getObjectByName( "HydraII" );
+			var path242 = scene2.getObjectByName( "second24" );
+			object242.visible = !object242.visible;
+			path242.visible = !path242.visible;
+		});
+		
+		var checkbox25 = document.getElementById("HydrusI");
+		checkbox25.addEventListener("click", function() {
+			var object251 = scene1.getObjectByName( "HydrusI" );
+			var path251 = scene1.getObjectByName( "first25" );
+			object251.visible = !object251.visible;
+			path251.visible = !path251.visible;
+			var object252 = scene2.getObjectByName( "HydrusI" );
+			var path252 = scene2.getObjectByName( "second25" );
+			object252.visible = !object252.visible;
+			path252.visible = !path252.visible;
+		});
+		
+		var checkbox26 = document.getElementById("LeoI");
+		checkbox26.addEventListener("click", function() {
+			var object261 = scene1.getObjectByName( "LeoI" );
+			var path261 = scene1.getObjectByName( "first26" );
+			object261.visible = !object261.visible;
+			path261.visible = !path261.visible;
+			var object262 = scene2.getObjectByName( "LeoI" );
+			var path262 = scene2.getObjectByName( "second26" );
+			object262.visible = !object262.visible;
+			path262.visible = !path262.visible;
+		});
+		
+		var checkbox27 = document.getElementById("LeoII");
+		checkbox27.addEventListener("click", function() {
+			var object271 = scene1.getObjectByName( "LeoII" );
+			var path271 = scene1.getObjectByName( "first27" );
+			object271.visible = !object271.visible;
+			path271.visible = !path271.visible;
+			var object272 = scene2.getObjectByName( "LeoII" );
+			var path272 = scene2.getObjectByName( "second27" );
+			object272.visible = !object272.visible;
+			path272.visible = !path272.visible;
+		});
+		
+		var checkbox28 = document.getElementById("LeoIV");
+		checkbox28.addEventListener("click", function() {
+			var object281 = scene1.getObjectByName( "LeoIV" );
+			var path281 = scene1.getObjectByName( "first28" );
+			object281.visible = !object281.visible;
+			path281.visible = !path281.visible;
+			var object282 = scene2.getObjectByName( "LeoIV" );
+			var path282 = scene2.getObjectByName( "second28" );
+			object282.visible = !object282.visible;
+			path282.visible = !path282.visible;
+		});
+		
+		var checkbox29 = document.getElementById("LeoV");
+		checkbox29.addEventListener("click", function() {
+			var object291 = scene1.getObjectByName( "LeoV" );
+			var path291 = scene1.getObjectByName( "first29" );
+			object291.visible = !object291.visible;
+			path291.visible = !path291.visible;
+			var object292 = scene2.getObjectByName( "LeoV" );
+			var path292 = scene2.getObjectByName( "second29" );
+			object292.visible = !object292.visible;
+			path292.visible = !path292.visible;
+		});
+		
+		var checkbox30 = document.getElementById("LeoT");
+		checkbox30.addEventListener("click", function() {
+			var object301 = scene1.getObjectByName( "LeoT" );
+			var path301 = scene1.getObjectByName( "first30" );
+			object301.visible = !object301.visible;
+			path301.visible = !path301.visible;
+			var object302 = scene2.getObjectByName( "LeoT" );
+			var path302 = scene2.getObjectByName( "second30" );
+			object302.visible = !object302.visible;
+			path302.visible = !path302.visible;
+		});
+		
+		var checkbox31 = document.getElementById("PegIII");
+		checkbox31.addEventListener("click", function() {
+			var object311 = scene1.getObjectByName( "PegIII" );
+			var path311 = scene1.getObjectByName( "first31" );
+			object311.visible = !object311.visible;
+			path311.visible = !path311.visible;
+			var object312 = scene2.getObjectByName( "PegIII" );
+			var path312 = scene2.getObjectByName( "second31" );
+			object312.visible = !object312.visible;
+			path312.visible = !path312.visible;
+		});
+		
+		var checkbox32 = document.getElementById("Phx");
+		checkbox32.addEventListener("click", function() {
+			var object321 = scene1.getObjectByName( "Phx" );
+			var path321 = scene1.getObjectByName( "first32" );
+			object321.visible = !object321.visible;
+			path321.visible = !path321.visible;
+			var object322 = scene2.getObjectByName( "Phx" );
+			var path322 = scene2.getObjectByName( "second32" );
+			object322.visible = !object322.visible;
+			path322.visible = !path322.visible;
+		});
+		
+		var checkbox33 = document.getElementById("PhxII");
+		checkbox33.addEventListener("click", function() {
+			var object331 = scene1.getObjectByName( "PhxII" );
+			var path331 = scene1.getObjectByName( "first33" );
+			object331.visible = !object331.visible;
+			path331.visible = !path331.visible;
+			var object332 = scene2.getObjectByName( "PhxII" );
+			var path332 = scene2.getObjectByName( "second33" );
+			object332.visible = !object332.visible;
+			path332.visible = !path332.visible;
+		});
+		
+		var checkbox34 = document.getElementById("RetII");
+		checkbox34.addEventListener("click", function() {
+			var object341 = scene1.getObjectByName( "RetII" );
+			var path341 = scene1.getObjectByName( "first34" );
+			object341.visible = !object341.visible;
+			path341.visible = !path341.visible;
+			var object342 = scene2.getObjectByName( "RetII" );
+			var path342 = scene2.getObjectByName( "second34" );
+			object342.visible = !object342.visible;
+			path342.visible = !path342.visible;
+		});
+		
+		var checkbox35 = document.getElementById("RetIII");
+		checkbox35.addEventListener("click", function() {
+			var object351 = scene1.getObjectByName( "RetIII" );
+			var path351 = scene1.getObjectByName( "first35" );
+			object351.visible = !object351.visible;
+			path351.visible = !path351.visible;
+			var object352 = scene2.getObjectByName( "RetIII" );
+			var path352 = scene2.getObjectByName( "second35" );
+			object352.visible = !object352.visible;
+			path352.visible = !path352.visible;
+		});
+		
+		var checkbox36 = document.getElementById("SagII");
+		checkbox36.addEventListener("click", function() {
+			var object361 = scene1.getObjectByName( "SagII" );
+			var path361 = scene1.getObjectByName( "first36" );
+			object361.visible = !object361.visible;
+			path361.visible = !path361.visible;
+			var object362 = scene2.getObjectByName( "SagII" );
+			var path362 = scene2.getObjectByName( "second36" );
+			object362.visible = !object362.visible;
+			path362.visible = !path362.visible;
+		});
+		
+		var checkbox37 = document.getElementById("Scl");
+		checkbox37.addEventListener("click", function() {
+			var object371 = scene1.getObjectByName( "Scl" );
+			var path371 = scene1.getObjectByName( "first37" );
+			object371.visible = !object371.visible;
+			path371.visible = !path371.visible;
+			var object372 = scene2.getObjectByName( "Scl" );
+			var path372 = scene2.getObjectByName( "second37" );
+			object372.visible = !object372.visible;
+			path372.visible = !path372.visible;
+		});
+		
+		var checkbox38 = document.getElementById("Seg1");
+		checkbox38.addEventListener("click", function() {
+			var object381 = scene1.getObjectByName( "Seg1" );
+			var path381 = scene1.getObjectByName( "first38" );
+			object381.visible = !object381.visible;
+			path381.visible = !path381.visible;
+			var object382 = scene2.getObjectByName( "Seg1" );
+			var path382 = scene2.getObjectByName( "second38" );
+			object382.visible = !object382.visible;
+			path382.visible = !path382.visible;
+		});
+		
+		var checkbox39 = document.getElementById("Seg2");
+		checkbox39.addEventListener("click", function() {
+			var object391 = scene1.getObjectByName( "Seg2" );
+			var path391 = scene1.getObjectByName( "first39" );
+			object391.visible = !object391.visible;
+			path391.visible = !path391.visible;
+			var object392 = scene2.getObjectByName( "Seg2" );
+			var path392 = scene2.getObjectByName( "second39" );
+			object392.visible = !object392.visible;
+			path392.visible = !path392.visible;
+		});
+		
+		var checkbox40 = document.getElementById("Sext");
+		checkbox40.addEventListener("click", function() {
+			var object401 = scene1.getObjectByName( "Sext" );
+			var path401 = scene1.getObjectByName( "first40" );
+			object401.visible = !object401.visible;
+			path401.visible = !path401.visible;
+			var object402 = scene2.getObjectByName( "Sext" );
+			var path402 = scene2.getObjectByName( "second40" );
+			object402.visible = !object402.visible;
+			path402.visible = !path402.visible;
+		});
+		
+		var checkbox41 = document.getElementById("TriII");
+		checkbox41.addEventListener("click", function() {
+			var object411 = scene1.getObjectByName( "TriII" );
+			var path411 = scene1.getObjectByName( "first41" );
+			object411.visible = !object411.visible;
+			path411.visible = !path411.visible;
+			var object412 = scene2.getObjectByName( "TriII" );
+			var path412 = scene2.getObjectByName( "second41" );
+			object412.visible = !object412.visible;
+			path412.visible = !path412.visible;
+		});
+		
+		var checkbox42 = document.getElementById("TucII");
+		checkbox42.addEventListener("click", function() {
+			var object421 = scene1.getObjectByName( "TucII" );
+			var path421 = scene1.getObjectByName( "first42" );
+			object421.visible = !object421.visible;
+			path421.visible = !path421.visible;
+			var object422 = scene2.getObjectByName( "TucII" );
+			var path422 = scene2.getObjectByName( "second42" );
+			object422.visible = !object422.visible;
+			path422.visible = !path422.visible;
+		});
+		
+		var checkbox43 = document.getElementById("TucIII");
+		checkbox43.addEventListener("click", function() {
+			var object431 = scene1.getObjectByName( "TucIII" );
+			var path431 = scene1.getObjectByName( "first43" );
+			object431.visible = !object431.visible;
+			path431.visible = !path431.visible;
+			var object432 = scene2.getObjectByName( "TucIII" );
+			var path432 = scene2.getObjectByName( "second43" );
+			object432.visible = !object432.visible;
+			path432.visible = !path432.visible;
+		});
+		
+		var checkbox44 = document.getElementById("TucIV");
+		checkbox44.addEventListener("click", function() {
+			var object441 = scene1.getObjectByName( "TucIV" );
+			var path441 = scene1.getObjectByName( "first44" );
+			object441.visible = !object441.visible;
+			path441.visible = !path441.visible;
+			var object442 = scene2.getObjectByName( "TucIV" );
+			var path442 = scene2.getObjectByName( "second44" );
+			object442.visible = !object442.visible;
+			path442.visible = !path442.visible;
+		});
+		
+		var checkbox45 = document.getElementById("UMaI");
+		checkbox45.addEventListener("click", function() {
+			var object451 = scene1.getObjectByName( "UMaI" );
+			var path451 = scene1.getObjectByName( "first45" );
+			object451.visible = !object451.visible;
+			path451.visible = !path451.visible;
+			var object452 = scene2.getObjectByName( "UMaI" );
+			var path452 = scene2.getObjectByName( "second45" );
+			object452.visible = !object452.visible;
+			path452.visible = !path452.visible;
+		});
+		
+		var checkbox46 = document.getElementById("UMaII");
+		checkbox46.addEventListener("click", function() {
+			var object461 = scene1.getObjectByName( "UMaII" );
+			var path461 = scene1.getObjectByName( "first46" );
+			object461.visible = !object461.visible;
+			path461.visible = !path461.visible;
+			var object462 = scene2.getObjectByName( "UMaII" );
+			var path462 = scene2.getObjectByName( "second46" );
+			object462.visible = !object462.visible;
+			path462.visible = !path462.visible;
+		});
+		
+		var checkbox47 = document.getElementById("UMi");
+		checkbox47.addEventListener("click", function() {
+			var object471 = scene1.getObjectByName( "UMi" );
+			var path471 = scene1.getObjectByName( "first47" );
+			object471.visible = !object471.visible;
+			path471.visible = !path471.visible;
+			var object472 = scene2.getObjectByName( "UMi" );
+			var path472 = scene2.getObjectByName( "second47" );
+			object472.visible = !object472.visible;
+			path472.visible = !path472.visible;
+		});
+		
+		var checkbox48 = document.getElementById("Wil1");
+		checkbox48.addEventListener("click", function() {
+			var object481 = scene1.getObjectByName( "Wil1" );
+			var path481 = scene1.getObjectByName( "first48" );
+			object481.visible = !object481.visible;
+			path481.visible = !path481.visible;
+			var object482 = scene2.getObjectByName( "Wil1" );
+			var path482 = scene2.getObjectByName( "second48" );
+			object482.visible = !object482.visible;
+			path482.visible = !path482.visible;
+		});
+		
+		var checkbox49 = document.getElementById("NGC6822");
+		checkbox49.addEventListener("click", function() {
+			var object491 = scene1.getObjectByName( "NGC6822" );
+			var path491 = scene1.getObjectByName( "first49" );
+			object491.visible = !object491.visible;
+			path491.visible = !path491.visible;
+			var object492 = scene2.getObjectByName( "NGC6822" );
+			var path492 = scene2.getObjectByName( "second49" );
+			object492.visible = !object492.visible;
+			path492.visible = !path492.visible;
+		});
+		
+		var checkbox50 = document.getElementById("PiscesII");
+		checkbox50.addEventListener("click", function() {
+			var object501 = scene1.getObjectByName( "PiscesII" );
+			var path501 = scene1.getObjectByName( "first50" );
+			object501.visible = !object501.visible;
+			path501.visible = !path501.visible;
+			var object502 = scene2.getObjectByName( "PiscesII" );
+			var path502 = scene2.getObjectByName( "second50" );
+			object502.visible = !object502.visible;
+			path502.visible = !path502.visible;
+		});
+		
+		var checkbox51 = document.getElementById("TucV");
+		checkbox51.addEventListener("click", function() {
+			var object511 = scene1.getObjectByName( "TucV" );
+			var path511 = scene1.getObjectByName( "first51" );
+			object511.visible = !object511.visible;
+			path511.visible = !path511.visible;
+			var object512 = scene2.getObjectByName( "TucV" );
+			var path512 = scene2.getObjectByName( "second51" );
+			object512.visible = !object512.visible;
+			path512.visible = !path512.visible;
+		});
+		
+		const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+		checkboxes.forEach(function(checkbox) {
+			checkbox.style.backgroundColor = 'black';
+		});
+		
+		var showGalaxyNamesCheckbox = document.getElementById('show-galaxy-names');
+		// Add an event listener to handle changes to the checkbox value
+		showGalaxyNamesCheckbox.addEventListener('change', function() {
+			var showGalaxyNames = this.checked;
+			// Loop through all galaxies in the scene and set their name sprite visibility
+			for (var i = 0; i < galaxies.length; i++) {
+				galaxies[i].children[0].visible = showGalaxyNames;
+				galaxies2[i].children[0].visible = showGalaxyNames;
+			}
+		});
+	</script>
+	</body>
+</html>
